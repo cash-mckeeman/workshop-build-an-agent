@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  agent-intro:
+    build: .
+    container_name: agent-intro-service
+    environment:
+      - HUGGING_FACE_API_KEY=${HUGGING_FACE_API_KEY}
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING:-false}
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-agent-intro}
+    volumes:
+      # Mount source for development
+      - ./src:/app/src
+      - ./tests:/app/tests
+    networks:
+      - agent-network
+    restart: unless-stopped
+    # Override for interactive mode
+    # command: ["tail", "-f", "/dev/null"]
+
+  # Future: Add web interface service
+  # agent-intro-web:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.web
+  #   ports:
+  #     - "8080:8000"
+  #   depends_on:
+  #     - agent-intro
+  #   environment:
+  #     - AGENT_INTRO_SERVICE_URL=http://agent-intro:8000
+  #   networks:
+  #     - agent-network
+
+networks:
+  agent-network:
+    driver: bridge
+
+volumes:
+  agent-intro-data:
+    driver: local
