@@ -16,6 +16,14 @@ from ..retrieval.vector_store import FAISSVectorStore
 from ..retrieval.reranker import RerankerProvider
 from ..tools.retrieval_tools import register_retrieval_tools
 
+# Import utility functions needed by tests
+try:
+    from ..retrieval.embeddings import get_best_available_provider
+except ImportError:
+    def get_best_available_provider():
+        """Fallback function for tests when embeddings module is not available."""
+        return None
+
 logger = logging.getLogger(__name__)
 
 
@@ -234,6 +242,56 @@ def demo_rag_agent_sync(model_provider: Optional[str] = None):
     except RuntimeError:
         # No event loop running, safe to use asyncio.run
         asyncio.run(demo_rag_agent(model_provider))
+
+
+def demo_document_creation():
+    """Demonstrate document creation and processing for RAG systems.
+
+    This shows how to create and structure documents that will be used
+    in the RAG knowledge base.
+    """
+    print("📄 Document Creation Demo")
+    print("=" * 40)
+
+    try:
+        from ..retrieval.base import Document
+
+        # Create sample documents
+        documents = [
+            Document(
+                content="PydanticAI is a Python agent framework that provides type safety and structured outputs.",
+                metadata={
+                    "title": "PydanticAI Overview",
+                    "topic": "framework",
+                    "source": "documentation",
+                    "id": "doc_001"
+                }
+            ),
+            Document(
+                content="RAG combines language models with external knowledge retrieval for better responses.",
+                metadata={
+                    "title": "RAG Technique",
+                    "topic": "technique",
+                    "source": "guide",
+                    "id": "doc_002"
+                }
+            )
+        ]
+
+        print(f"✅ Created {len(documents)} demo documents")
+
+        # Show document structure
+        for i, doc in enumerate(documents, 1):
+            print(f"\nDocument {i}:")
+            print(f"  Content: {doc.content[:50]}...")
+            print(f"  Metadata: {doc.metadata}")
+
+        return documents
+
+    except Exception as e:
+        print(f"❌ Document creation failed: {str(e)}")
+        logger.exception("Document creation demo failed")
+        return []
 
 
 if __name__ == "__main__":

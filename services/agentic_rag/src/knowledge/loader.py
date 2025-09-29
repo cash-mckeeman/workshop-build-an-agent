@@ -35,6 +35,88 @@ class DocumentLoader:
         """
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        self.supported_extensions = {'.md', '.txt', '.text', '.pdf'}
+
+    def is_supported_file(self, filename: str) -> bool:
+        """Check if a file is supported based on its extension.
+
+        Args:
+            filename: Name of the file to check
+
+        Returns:
+            True if the file extension is supported
+        """
+        file_path = Path(filename)
+        extension = file_path.suffix.lower()
+        return extension in self.supported_extensions
+
+    def generate_doc_id(self, content: str, metadata: Dict[str, Any]) -> str:
+        """Generate a unique document ID based on content and metadata.
+
+        Args:
+            content: Document content
+            metadata: Document metadata
+
+        Returns:
+            Unique document ID
+        """
+        # Create a hash from source and content
+        source = metadata.get('source', '')
+        combined = f"{source}:{content[:100]}"
+        return hashlib.md5(combined.encode()).hexdigest()
+
+    def extract_metadata(self, file_path: Union[str, Path]) -> Dict[str, Any]:
+        """Extract metadata from a file path.
+
+        Args:
+            file_path: Path to the file
+
+        Returns:
+            Dictionary of extracted metadata
+        """
+        file_path = Path(file_path)
+        return {
+            "source": str(file_path),
+            "filename": file_path.name,
+            "extension": file_path.suffix.lower(),
+            "size": file_path.stat().st_size if file_path.exists() else 0,
+            "loaded_at": datetime.now().isoformat()
+        }
+
+    def _generate_doc_id(self, file_path: str) -> str:
+        """Generate a unique document ID from file path.
+
+        Args:
+            file_path: Path to the file
+
+        Returns:
+            Unique document ID
+        """
+        return hashlib.md5(file_path.encode()).hexdigest()
+
+    def _extract_metadata(self, file_path: str, file_format: str) -> Dict[str, Any]:
+        """Extract metadata from file path and format.
+
+        Args:
+            file_path: Path to the file
+            file_format: File format (e.g., 'md', 'txt', 'pdf')
+
+        Returns:
+            Dictionary of extracted metadata
+        """
+        path = Path(file_path)
+        stat_info = path.stat() if path.exists() else None
+
+        return {
+            "file_path": file_path,
+            "file_name": path.name,
+            "file_type": file_format,
+            "file_size": stat_info.st_size if stat_info else 0,
+            "created_at": datetime.fromtimestamp(stat_info.st_ctime).isoformat() if stat_info else datetime.now().isoformat(),
+            "modified_at": datetime.fromtimestamp(stat_info.st_mtime).isoformat() if stat_info else datetime.now().isoformat(),
+            "extension": path.suffix.lower(),
+            "loaded_at": datetime.now().isoformat()
+        }
 
     def load_markdown_file(self, file_path: Union[str, Path]) -> List[Document]:
         """Load a markdown file and convert it to documents.
@@ -328,13 +410,22 @@ def load_it_knowledge_base(data_dir: Union[str, Path] = None) -> List[Document]:
     return documents
 
 
-def setup_knowledge_base():
-    """CLI command to setup the knowledge base."""
+def setup_knowledge_base(embedding_provider=None, data_dir=None, save_path=None):
+    """CLI command to setup the knowledge base.
+
+    Args:
+        embedding_provider: Embedding provider instance (optional)
+        data_dir: Directory to load documents from (optional)
+        save_path: Path to save the knowledge base (optional)
+
+    Returns:
+        List of loaded documents
+    """
     print("🔧 Setting up IT Knowledge Base")
     print("=" * 40)
 
     try:
-        documents = load_it_knowledge_base()
+        documents = load_it_knowledge_base(data_dir)
         print(f"✅ Successfully loaded {len(documents)} documents")
 
         # Show some statistics
@@ -347,9 +438,50 @@ def setup_knowledge_base():
         for topic, count in sorted(topics.items()):
             print(f"   {topic}: {count} documents")
 
+        if save_path:
+            print(f"💾 Knowledge base would be saved to: {save_path}")
+
+        return documents
+
     except Exception as e:
         print(f"❌ Error setting up knowledge base: {str(e)}")
         raise
+
+
+# Convenience functions for the test suite
+
+def load_document_from_file(file_path: str) -> List[Document]:
+    """Load a single document from a file.
+
+    Args:
+        file_path: Path to the file
+
+    Returns:
+        List of Document instances
+    """
+    loader = DocumentLoader()
+    try:
+        return loader.load_file(file_path)
+    except Exception as e:
+        logger.error(f"Error loading document from {file_path}: {str(e)}")
+        return []
+
+
+def load_documents_from_directory(
+    directory: str,
+    recursive: bool = True
+) -> List[Document]:
+    """Load all documents from a directory.
+
+    Args:
+        directory: Directory path
+        recursive: Whether to search recursively
+
+    Returns:
+        List of Document instances
+    """
+    loader = DocumentLoader()
+    return loader.load_directory(directory, recursive=recursive)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,14 @@ from pathlib import Path
 
 from .base import VectorStore, Document, SearchResult, EmbeddingProvider
 
+# Import FAISS with fallback for testing
+try:
+    import faiss
+    FAISS_AVAILABLE = True
+except ImportError:
+    faiss = None
+    FAISS_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,12 +58,16 @@ class FAISSVectorStore(VectorStore):
 
     def _initialize_index(self):
         """Initialize the FAISS index."""
-        try:
-            import faiss
-        except ImportError as e:
+        if not FAISS_AVAILABLE:
             raise ImportError(
                 "FAISS not installed. Install with: pip install faiss-cpu"
-            ) from e
+            )
+
+        # Additional check for dynamic import scenarios (e.g., testing)
+        if faiss is None:
+            raise ImportError(
+                "FAISS not installed. Install with: pip install faiss-cpu"
+            )
 
         dimension = self.embedding_provider.dimension
 
@@ -177,7 +189,7 @@ class FAISSVectorStore(VectorStore):
             # Convert distance to similarity score
             # For L2 distance, convert to similarity
             if self.index_type in ["flat", "ivf", "hnsw"]:
-                score = 1.0 / (1.0 + distance)
+                score = float(1.0 / (1.0 + float(distance)))
             else:  # inner product
                 score = float(distance)
 
@@ -237,7 +249,11 @@ class FAISSVectorStore(VectorStore):
         # Rebuild FAISS index
         self._initialize_index()
         if self._documents:
-            self.add_documents(self._documents.copy())
+            # Re-add existing documents to the new index
+            texts = [doc.content for doc in self._documents]
+            embeddings = self.embedding_provider.embed_texts(texts)
+            vectors = np.array(embeddings, dtype=np.float32)
+            self._index.add(vectors)
 
         logger.info(f"Deleted {len(indices_to_remove)} documents. Remaining: {len(self._documents)}")
 
@@ -270,8 +286,6 @@ class FAISSVectorStore(VectorStore):
         save_path.mkdir(parents=True, exist_ok=True)
 
         try:
-            import faiss
-
             # Save FAISS index
             faiss.write_index(self._index, str(save_path / "index.faiss"))
 
@@ -314,8 +328,6 @@ class FAISSVectorStore(VectorStore):
             raise ValueError("Load path does not exist")
 
         try:
-            import faiss
-
             # Load FAISS index
             self._index = faiss.read_index(str(load_path / "index.faiss"))
 

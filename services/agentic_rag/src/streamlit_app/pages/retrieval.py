@@ -365,16 +365,33 @@ def analyze_retrieval_results(basic_results, reranked_results):
     st.subheader("📊 Retrieval Analysis")
 
     if basic_results:
-        basic_avg_score = sum(result.score for result in basic_results) / len(basic_results)
+        # Handle both SearchResult objects and tuples
+        basic_scores = []
+        for result in basic_results:
+            if hasattr(result, 'score'):
+                basic_scores.append(result.score)
+            elif isinstance(result, tuple) and len(result) >= 2:
+                basic_scores.append(result[1])  # Assume (doc, score) tuple format
 
-        metrics = {"Basic Search Avg Score": f"{basic_avg_score:.3f}"}
+        if basic_scores:
+            basic_avg_score = sum(basic_scores) / len(basic_scores)
+            metrics = {"Basic Search Avg Score": f"{basic_avg_score:.3f}"}
 
-        if reranked_results:
-            reranked_avg_score = sum(result.score for result in reranked_results) / len(reranked_results)
-            metrics["Reranked Avg Score"] = f"{reranked_avg_score:.3f}"
-            metrics["Score Improvement"] = f"{reranked_avg_score - basic_avg_score:+.3f}"
+            if reranked_results:
+                # Handle both SearchResult objects and tuples
+                reranked_scores = []
+                for result in reranked_results:
+                    if hasattr(result, 'score'):
+                        reranked_scores.append(result.score)
+                    elif isinstance(result, tuple) and len(result) >= 2:
+                        reranked_scores.append(result[1])  # Assume (doc, score) tuple format
 
-        format_metrics_display(metrics)
+                if reranked_scores:
+                    reranked_avg_score = sum(reranked_scores) / len(reranked_scores)
+                    metrics["Reranked Avg Score"] = f"{reranked_avg_score:.3f}"
+                    metrics["Score Improvement"] = f"{reranked_avg_score - basic_avg_score:+.3f}"
+
+            format_metrics_display(metrics)
 
 
 def demonstrate_reranking_impact():
