@@ -1,0 +1,139 @@
+[project]
+name = "agent-intro"
+version = "1.0.0"
+description = "Educational Agent Tutorial Service - Demonstrates the four core components of AI agents"
+authors = [
+    {name = "Workshop Build An Agent", email = "workshop@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["ai", "agents", "langchain", "huggingface", "tutorial", "education"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    # Core PydanticAI framework
+    "pydantic-ai>=0.0.1",
+    "pydantic>=2.11.7",
+
+    # Model providers (install as needed)
+    "openai>=1.0.0",           # For OpenAI models
+    "anthropic>=0.19.0",       # For Anthropic Claude models
+    "huggingface-hub>=0.20.0", # For HuggingFace models
+    "groq>=0.4.0",             # For Groq models
+
+    # Web interface and utilities
+    "streamlit>=1.49.1",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.25.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+local = [
+    "transformers>=4.36.0",
+    "torch>=2.1.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "podman-compose>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/workshop-build-an-agent"
+Documentation = "https://github.com/workshop-build-an-agent/README.md"
+Repository = "https://github.com/workshop-build-an-agent.git"
+
+[project.scripts]
+agent-intro-demo = "basic_agent:demo_basic_agent"
+agent-intro-chat = "examples.simple_chat:simple_chat_demo"
+agent-intro-tools = "examples.tool_calling:tool_calling_demo"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.0.0",
+    "podman-compose>=1.0.0",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+pythonpath = ["src"]
+addopts = "-v --tb=short --cov=src --cov-report=term-missing --cov-report=html"
+asyncio_mode = "auto"
