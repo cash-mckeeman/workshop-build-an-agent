@@ -5,16 +5,19 @@ This module shows an agent with only the demo tools (no math tools),
 focusing on utility functions like time, facts, text manipulation, etc.
 """
 
-from typing import Optional
-
 from pydantic_ai import Agent
-from tools.demo_tools import get_random_fact, current_time, word_count, reverse_string, is_palindrome
-from tools.agent_helpers import register_multiple_tools
+
+from src.tools.agent_helpers import register_multiple_tools
+from src.tools.demo_tools import (
+    current_time,
+    get_random_fact,
+    is_palindrome,
+    reverse_string,
+    word_count,
+)
 
 
-def create_demo_agent(
-    model_provider: str = "openai:gpt-4o-mini"
-) -> Agent[None, str]:
+def create_demo_agent(model_provider: str = "openai:gpt-4o-mini") -> Agent[None, str]:
     """Create an agent with only demo tools (no math tools).
 
     This demonstrates the TOOLS component by showing how to add
@@ -36,16 +39,16 @@ def create_demo_agent(
             "Never make up or guess responses - always use the appropriate tool when available. "
             "When you get a tool result, present it clearly to the user. "
             "You cannot perform mathematical calculations."
-        )
+        ),
     )
 
     # Define the demo tools to register
     demo_tools = {
-        'get_current_time': current_time,
-        'get_fun_fact': get_random_fact,
-        'count_words': word_count,
-        'reverse_text': reverse_string,
-        'check_palindrome': is_palindrome,
+        "get_current_time": current_time,
+        "get_fun_fact": get_random_fact,
+        "count_words": word_count,
+        "reverse_text": reverse_string,
+        "check_palindrome": is_palindrome,
     }
 
     # Register demo tools

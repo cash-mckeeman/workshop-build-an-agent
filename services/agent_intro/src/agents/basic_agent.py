@@ -5,15 +5,11 @@ This module provides the simplest possible agent implementation,
 corresponding to the basic concepts from intro_to_agents.ipynb.
 """
 
-import asyncio
-from typing import Optional
-
 from pydantic_ai import Agent
 
 
 def create_basic_agent(
-    model_provider: str = "openai:gpt-4o-mini",
-    instructions: Optional[str] = None
+    model_provider: str = "openai:gpt-4o-mini", instructions: str | None = None
 ) -> Agent[None, str]:
     """Create a basic PydanticAI agent for tutorial introduction.
 
@@ -33,10 +29,7 @@ def create_basic_agent(
         "provide practical examples when appropriate."
     )
 
-    return Agent(
-        model_provider,
-        instructions=instructions or default_instructions
-    )
+    return Agent(model_provider, instructions=instructions or default_instructions)
 
 
 async def demo_basic_agent():
@@ -116,7 +109,7 @@ def interactive_basic_agent():
     while True:
         try:
             user_input = input("You: ").strip()
-            if user_input.lower() in ['quit', 'exit', 'bye']:
+            if user_input.lower() in ["quit", "exit", "bye"]:
                 print("👋 Goodbye!")
                 break
 

@@ -1,11 +1,15 @@
 """Tests for tool_agent module."""
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from pydantic_ai import Agent
-from agents.tool_agent import create_tool_agent
+
+from src.agents.tool_agent import create_tool_agent
 
 
+@pytest.mark.integration
+@pytest.mark.requires_api
 class TestToolAgent:
     """Test cases for tool agent functionality."""
 
@@ -39,7 +43,7 @@ class TestToolAgent:
         assert isinstance(agent, Agent)
         # Basic verification that agent is created properly
 
-    @patch('agents.tool_agent.register_multiple_tools')
+    @patch("src.agents.tool_agent.register_multiple_tools")
     def test_basic_tools_registration(self, mock_register):
         """Test that basic tools are registered."""
         create_tool_agent(include_math_tools=False)
@@ -53,15 +57,15 @@ class TestToolAgent:
 
         assert isinstance(agent_arg, Agent)
         expected_tools = {
-            'get_current_time',
-            'get_fun_fact',
-            'count_words',
-            'reverse_text',
-            'check_palindrome'
+            "get_current_time",
+            "get_fun_fact",
+            "count_words",
+            "reverse_text",
+            "check_palindrome",
         }
         assert set(tools_dict.keys()) == expected_tools
 
-    @patch('agents.tool_agent.register_multiple_tools')
+    @patch("src.agents.tool_agent.register_multiple_tools")
     def test_math_tools_registration(self, mock_register):
         """Test that math tools are registered when enabled."""
         create_tool_agent(include_math_tools=True)
@@ -76,17 +80,17 @@ class TestToolAgent:
         # Verify basic tools
         _, basic_tools = basic_call[0]
         expected_basic = {
-            'get_current_time',
-            'get_fun_fact',
-            'count_words',
-            'reverse_text',
-            'check_palindrome'
+            "get_current_time",
+            "get_fun_fact",
+            "count_words",
+            "reverse_text",
+            "check_palindrome",
         }
         assert set(basic_tools.keys()) == expected_basic
 
         # Verify math tools
         _, math_tools = math_call[0]
-        expected_math = {'add', 'multiply'}
+        expected_math = {"add", "multiply"}
         assert set(math_tools.keys()) == expected_math
 
     def test_agent_instructions_content(self):
@@ -102,7 +106,7 @@ class TestToolAgent:
         providers = [
             "openai:gpt-4o-mini",
             "anthropic:claude-3-haiku-20240307",
-            "groq:llama3-8b-8192"
+            "groq:llama3-8b-8192",
         ]
 
         for provider in providers:

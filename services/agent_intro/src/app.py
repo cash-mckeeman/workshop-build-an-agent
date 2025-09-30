@@ -14,24 +14,17 @@ Features:
 - Real-time provider health monitoring
 """
 
-import streamlit as st
 import sys
 from pathlib import Path
+
+import streamlit as st
 
 # Add the src directory to Python path
 src_path = Path(__file__).parent.parent
 sys.path.insert(0, str(src_path))
 
-from factory import (
-    AgentFactory,
-    get_recommended_setup,
-    create_tutorial_agent
-)
-from models import (
-    get_available_providers,
-    check_all_providers
-)
-from models.health import print_health_status
+from src.factory import create_tutorial_agent, get_recommended_setup
+from src.models import check_all_providers
 
 
 def main():
@@ -40,7 +33,7 @@ def main():
         page_title="Agent Introduction Tutorial",
         page_icon="🤖",
         layout="wide",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state="expanded",
     )
 
     # Header
@@ -78,10 +71,10 @@ def main():
                 """)
 
         # Mode selection
-        mode = st.radio(
+        _ = st.radio(
             "Tutorial Mode",
             ["🎓 Beginner", "🔬 Intermediate", "🚀 Advanced"],
-            help="Choose your learning level"
+            help="Choose your learning level",
         )
 
         # Provider health status
@@ -97,12 +90,9 @@ def main():
                         st.error(f"❌ {name.upper()}: {result.message}")
 
     # Main content area
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📚 Tutorial",
-        "🎮 Playground",
-        "🧮 Math Demo",
-        "🔧 Tools Demo"
-    ])
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["📚 Tutorial", "🎮 Playground", "🧮 Math Demo", "🔧 Tools Demo"]
+    )
 
     with tab1:
         tutorial_section()
@@ -206,8 +196,12 @@ def playground_section():
     # Agent type selection
     agent_type = st.selectbox(
         "Choose Agent Type",
-        ["Basic Agent (MODEL only)", "Math Agent (MODEL + TOOLS)", "Tool Agent (MODEL + TOOLS + more)"],
-        help="See how adding components changes capabilities"
+        [
+            "Basic Agent (MODEL only)",
+            "Math Agent (MODEL + TOOLS)",
+            "Tool Agent (MODEL + TOOLS + more)",
+        ],
+        help="See how adding components changes capabilities",
     )
 
     # Initialize session state
@@ -243,12 +237,16 @@ def playground_section():
                     response = result.output
 
                     st.markdown(response)
-                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": response}
+                    )
 
                 except Exception as e:
                     error_msg = f"Error: {str(e)}"
                     st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": error_msg}
+                    )
 
     # Clear chat button
     if st.button("🗑️ Clear Chat"):
@@ -287,7 +285,9 @@ result = agent.run_sync("What is 3 plus 12?")
                     agent = create_tutorial_agent("basic")
                     result = agent.run_sync("What is 3 plus 12?")
                     st.write("**Response:**", result.output)
-                    st.warning("⚠️ Cannot provide exact calculation - no tools available!")
+                    st.warning(
+                        "⚠️ Cannot provide exact calculation - no tools available!"
+                    )
                 except Exception as e:
                     st.error(f"Error: {e}")
 
@@ -347,18 +347,18 @@ def tools_demo_section():
         "📊 Math Tools": [
             "What is 15 multiplied by 8?",
             "Calculate (5 + 3) × 2",
-            "What's 2 to the power of 10?"
+            "What's 2 to the power of 10?",
         ],
         "📝 Text Tools": [
             "How many words are in 'Hello beautiful world'?",
             "What is 'hello' spelled backwards?",
-            "Is 'racecar' a palindrome?"
+            "Is 'racecar' a palindrome?",
         ],
         "🕒 Utility Tools": [
             "What time is it right now?",
             "Tell me a random interesting fact",
-            "Generate a random number between 1 and 100"
-        ]
+            "Generate a random number between 1 and 100",
+        ],
     }
 
     for category, examples in tool_examples.items():
@@ -377,7 +377,7 @@ def tools_demo_section():
     st.subheader("🎯 Try Your Own Questions")
     custom_question = st.text_input(
         "Ask the tool agent anything:",
-        placeholder="e.g., 'What time is it and give me a fun fact?'"
+        placeholder="e.g., 'What time is it and give me a fun fact?'",
     )
 
     if custom_question and st.button("🚀 Ask Tool Agent"):

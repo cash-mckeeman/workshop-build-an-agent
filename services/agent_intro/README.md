@@ -107,10 +107,10 @@ The service includes a comprehensive Streamlit web application for learning:
 
 ```bash
 # Run the Streamlit learning interface
-uv run python run_streamlit_app.py
+uv run streamlit run src/streamlit_app/app.py
 
 # Or run with specific settings
-uv run streamlit run run_streamlit_app.py --server.headless true --server.port 8501
+uv run streamlit run src/streamlit_app/app.py --server.port 8502
 ```
 
 Then open [http://localhost:8501](http://localhost:8501) in your browser.
@@ -376,3 +376,5 @@ After mastering the basics here, explore:
 ## Contributing
 
 This module is part of the workshop-build-an-agent project. See the main [PLAN.md](../../PLAN.md) for the overall refactoring strategy.
+---
+*Last updated: 2025-09-30*

@@ -1,10 +1,13 @@
 """Tests for tools.math_tools module."""
 
-import pytest
 from unittest.mock import MagicMock
-from tools.math_tools import add, multiply, divide, power, register_math_tools
+
+import pytest
+
+from src.tools.math_tools import add, divide, multiply, power, register_math_tools
 
 
+@pytest.mark.unit
 class TestMathTools:
     """Test cases for math tool functions."""
 
@@ -18,9 +21,9 @@ class TestMathTools:
     def test_add_type_annotations(self):
         """Test that add function has proper type annotations."""
         annotations = add.__annotations__
-        assert 'a' in annotations
-        assert 'b' in annotations
-        assert 'return' in annotations
+        assert "a" in annotations
+        assert "b" in annotations
+        assert "return" in annotations
 
     def test_multiply(self):
         """Test the multiply function."""
@@ -32,9 +35,9 @@ class TestMathTools:
     def test_multiply_type_annotations(self):
         """Test that multiply function has proper type annotations."""
         annotations = multiply.__annotations__
-        assert 'a' in annotations
-        assert 'b' in annotations
-        assert 'return' in annotations
+        assert "a" in annotations
+        assert "b" in annotations
+        assert "return" in annotations
 
     def test_divide(self):
         """Test the divide function."""
@@ -54,9 +57,9 @@ class TestMathTools:
     def test_divide_type_annotations(self):
         """Test that divide function has proper type annotations."""
         annotations = divide.__annotations__
-        assert 'a' in annotations
-        assert 'b' in annotations
-        assert 'return' in annotations
+        assert "a" in annotations
+        assert "b" in annotations
+        assert "return" in annotations
 
     def test_power(self):
         """Test the power function."""
@@ -76,9 +79,9 @@ class TestMathTools:
     def test_power_type_annotations(self):
         """Test that power function has proper type annotations."""
         annotations = power.__annotations__
-        assert 'base' in annotations
-        assert 'exponent' in annotations
-        assert 'return' in annotations
+        assert "base" in annotations
+        assert "exponent" in annotations
+        assert "return" in annotations
 
     def test_register_math_tools(self):
         """Test registering math tools with an agent."""
@@ -142,16 +145,16 @@ class TestMathTools:
 
         # Test add parameters
         add_params = list(inspect.signature(add).parameters.keys())
-        assert add_params == ['a', 'b']
+        assert add_params == ["a", "b"]
 
         # Test multiply parameters
         multiply_params = list(inspect.signature(multiply).parameters.keys())
-        assert multiply_params == ['a', 'b']
+        assert multiply_params == ["a", "b"]
 
         # Test divide parameters
         divide_params = list(inspect.signature(divide).parameters.keys())
-        assert divide_params == ['a', 'b']
+        assert divide_params == ["a", "b"]
 
         # Test power parameters
         power_params = list(inspect.signature(power).parameters.keys())
-        assert power_params == ['base', 'exponent']
+        assert power_params == ["base", "exponent"]

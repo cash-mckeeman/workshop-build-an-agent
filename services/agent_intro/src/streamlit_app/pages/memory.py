@@ -3,20 +3,16 @@ Memory page for learning about agent memory, conversation history, and structure
 """
 
 import streamlit as st
-from streamlit_app.components.code_display import (
+
+from src.streamlit_app.components.code_display import (
     display_interactive_code,
-    display_code_comparison,
 )
-from streamlit_app.components.interactive_demo import (
-    create_live_agent_chat,
-)
-from streamlit_app.utils.session_state import mark_progress
+from src.streamlit_app.utils.session_state import mark_progress
 
 
 def show_memory_page():
     """Display the memory page content."""
-    from factory import get_recommended_setup, create_tutorial_agent
-    from models import get_available_providers, check_all_providers
+    from src.factory import create_tutorial_agent, get_recommended_setup
 
     st.header("🧠 Memory & Structured Outputs")
 
@@ -50,26 +46,26 @@ def show_memory_page():
 
     with col1:
         st.markdown("**Without Memory (Each message is isolated)**")
-        no_memory_example = '''
+        no_memory_example = """
 User: "My name is Alex"
 Agent: "Nice to meet you!"
 
 User: "What's my name?"
 Agent: "I don't know your name."
 ❌ Agent forgets everything
-'''
+"""
         st.code(no_memory_example, language="text")
 
     with col2:
         st.markdown("**With Memory (Conversation context)**")
-        memory_example = '''
+        memory_example = """
 User: "My name is Alex"
 Agent: "Nice to meet you, Alex!"
 
 User: "What's my name?"
 Agent: "Your name is Alex!"
 ✅ Agent remembers the conversation
-'''
+"""
         st.code(memory_example, language="text")
 
     st.markdown("---")
@@ -84,7 +80,7 @@ Agent: "Your name is Alex!"
     memory_steps = [
         {
             "title": "Step 1: Start a Conversation",
-            "code": '''
+            "code": """
 from pydantic_ai import Agent
 
 agent = Agent("openai:gpt-4o-mini")
@@ -93,12 +89,12 @@ agent = Agent("openai:gpt-4o-mini")
 result = agent.run_sync("Hi, I'm working on a Python project")
 print(result.output)
 # "Hello! I'd be happy to help with your Python project."
-''',
-            "explanation": "The first message creates a new conversation with message history."
+""",
+            "explanation": "The first message creates a new conversation with message history.",
         },
         {
             "title": "Step 2: Continue the Conversation",
-            "code": '''
+            "code": """
 # Agent remembers the previous context
 result = agent.run_sync("Can you help me with functions?")
 print(result.output)
@@ -109,12 +105,12 @@ print(result.output)
 result = agent.run_sync("Show me an example")
 print(result.output)
 # "Here's a Python function example for your project..."
-''',
-            "explanation": "Each new message adds to the conversation history that the agent can see."
+""",
+            "explanation": "Each new message adds to the conversation history that the agent can see.",
         },
         {
             "title": "Step 3: Access Conversation History",
-            "code": '''
+            "code": """
 # You can see the full conversation
 for message in result.all_messages():
     print(f"{message.role}: {message.content}")
@@ -124,9 +120,9 @@ for message in result.all_messages():
 # assistant: Hello! I'd be happy to help...
 # user: Can you help me with functions?
 # assistant: Of course! Since you're working...
-''',
-            "explanation": "PydanticAI keeps track of the entire conversation automatically."
-        }
+""",
+            "explanation": "PydanticAI keeps track of the entire conversation automatically.",
+        },
     ]
 
     for i, step in enumerate(memory_steps):
@@ -157,25 +153,33 @@ for message in result.all_messages():
             "I'm learning Python and prefer visual examples",
             "What are variables?",
             "Can you build on that with a more complex example?",
-            "Remind me what we discussed about variables"
+            "Remind me what we discussed about variables",
         ]
 
         st.markdown("**Suggested messages:**")
         for suggestion in suggestions:
-            if st.button(f"💬 \"{suggestion}\"", key=f"memory_suggestion_{hash(suggestion)}"):
-                st.session_state.memory_agent_messages.append({"role": "user", "content": suggestion})
+            if st.button(
+                f'💬 "{suggestion}"', key=f"memory_suggestion_{hash(suggestion)}"
+            ):
+                st.session_state.memory_agent_messages.append(
+                    {"role": "user", "content": suggestion}
+                )
 
                 with st.spinner("Agent is thinking..."):
                     try:
                         # Build conversation context for the agent
                         context = ""
-                        for msg in st.session_state.memory_agent_messages[:-1]:  # All but the last message
+                        for msg in st.session_state.memory_agent_messages[
+                            :-1
+                        ]:  # All but the last message
                             context += f"{msg['role']}: {msg['content']}\n"
 
                         full_prompt = f"Previous conversation:\n{context}\nCurrent message: {suggestion}"
                         result = memory_agent.run_sync(full_prompt)
 
-                        st.session_state.memory_agent_messages.append({"role": "agent", "content": result.output})
+                        st.session_state.memory_agent_messages.append(
+                            {"role": "agent", "content": result.output}
+                        )
                         st.rerun()
                     except Exception as e:
                         st.error(f"Error: {e}")
@@ -191,10 +195,14 @@ for message in result.all_messages():
 
         # Manual input
         st.markdown("**Or ask your own question:**")
-        user_input = st.text_input("Continue the conversation:", key="memory_agent_input")
+        user_input = st.text_input(
+            "Continue the conversation:", key="memory_agent_input"
+        )
 
         if st.button("Send", key="memory_agent_send") and user_input:
-            st.session_state.memory_agent_messages.append({"role": "user", "content": user_input})
+            st.session_state.memory_agent_messages.append(
+                {"role": "user", "content": user_input}
+            )
 
             with st.spinner("Agent is thinking..."):
                 try:
@@ -206,7 +214,9 @@ for message in result.all_messages():
                     full_prompt = f"Previous conversation:\n{context}\nCurrent message: {user_input}"
                     result = memory_agent.run_sync(full_prompt)
 
-                    st.session_state.memory_agent_messages.append({"role": "agent", "content": result.output})
+                    st.session_state.memory_agent_messages.append(
+                        {"role": "agent", "content": result.output}
+                    )
                     st.rerun()
                 except Exception as e:
                     st.error(f"Error: {e}")
@@ -272,7 +282,7 @@ for movie in movies.recommendations:
     display_interactive_code(
         structured_example,
         "This agent returns structured data that your code can directly use!",
-        allow_edit=False
+        allow_edit=False,
     )
 
     st.markdown("---")
@@ -289,7 +299,6 @@ for movie in movies.recommendations:
         with st.spinner("Getting structured movie data..."):
             try:
                 # Simulate structured output (in real implementation, this would use result_type)
-                import json
 
                 # Mock structured response
                 mock_response = {
@@ -299,24 +308,24 @@ for movie in movies.recommendations:
                             "genre": "Science Fiction",
                             "year": 2021,
                             "rating": 8.0,
-                            "reason": "Epic space opera with stunning visuals and complex world-building"
+                            "reason": "Epic space opera with stunning visuals and complex world-building",
                         },
                         {
                             "title": "Everything Everywhere All at Once",
                             "genre": "Sci-Fi Comedy",
                             "year": 2022,
                             "rating": 8.1,
-                            "reason": "Creative multiverse concept with emotional depth and humor"
+                            "reason": "Creative multiverse concept with emotional depth and humor",
                         },
                         {
                             "title": "The Tomorrow War",
                             "genre": "Action Sci-Fi",
                             "year": 2021,
                             "rating": 6.5,
-                            "reason": "Time travel action with family themes and alien invasion"
-                        }
+                            "reason": "Time travel action with family themes and alien invasion",
+                        },
                     ],
-                    "total_count": 3
+                    "total_count": 3,
                 }
 
                 st.success("Got structured movie data!")
@@ -328,7 +337,9 @@ for movie in movies.recommendations:
                 # Display formatted
                 st.markdown("**Formatted Output:**")
                 for movie in mock_response["recommendations"]:
-                    with st.expander(f"{movie['title']} ({movie['year']}) - ⭐ {movie['rating']}/10"):
+                    with st.expander(
+                        f"{movie['title']} ({movie['year']}) - ⭐ {movie['rating']}/10"
+                    ):
                         st.markdown(f"**Genre:** {movie['genre']}")
                         st.markdown(f"**Why recommended:** {movie['reason']}")
 
@@ -356,7 +367,7 @@ agent = Agent(
     Build on previous lessons and adapt your teaching.
     """
 )
-'''
+''',
         },
         {
             "name": "🛒 Shopping Assistant",
@@ -373,7 +384,7 @@ agent = Agent(
     Help build and refine a shopping list.
     """
 )
-'''
+''',
         },
         {
             "name": "📝 Project Manager",
@@ -390,12 +401,14 @@ agent = Agent(
     Provide updates and suggest next steps.
     """
 )
-'''
-        }
+''',
+        },
     ]
 
     for pattern in memory_patterns:
-        with st.expander(f"{pattern['name']}: {pattern['description']}", expanded=False):
+        with st.expander(
+            f"{pattern['name']}: {pattern['description']}", expanded=False
+        ):
             st.code(pattern["code"], language="python")
 
     st.markdown("---")
@@ -407,19 +420,19 @@ agent = Agent(
         {
             "title": "Conversation Dependencies",
             "description": "Pass data between agent calls",
-            "code": '''
+            "code": """
 from pydantic_ai import RunContext
 
 @agent.system_prompt
 def get_context(ctx: RunContext) -> str:
     user_data = ctx.deps  # Access shared data
     return f"User preferences: {user_data.get('preferences', 'none')}"
-'''
+""",
         },
         {
             "title": "Memory Persistence",
             "description": "Save conversations to database or files",
-            "code": '''
+            "code": """
 # Save conversation history
 conversation_history = []
 for message in result.all_messages():
@@ -431,7 +444,7 @@ for message in result.all_messages():
 
 # Save to database or file
 save_conversation(user_id, conversation_history)
-'''
+""",
         },
         {
             "title": "Context Window Management",
@@ -446,8 +459,8 @@ def summarize_old_messages(messages):
         )
         return [summary] + messages[-10:]
     return messages
-'''
-        }
+''',
+        },
     ]
 
     for concept in advanced_concepts:
@@ -467,7 +480,7 @@ def summarize_old_messages(messages):
         "**Design for context**: Write instructions that help agents use memory effectively",
         "**Test memory behavior**: Verify that agents remember and use context appropriately",
         "**Handle memory limits**: Plan for when conversations get too long",
-        "**Structure your data**: Use Pydantic models for complex, structured outputs"
+        "**Structure your data**: Use Pydantic models for complex, structured outputs",
     ]
 
     for practice in best_practices:
@@ -526,7 +539,7 @@ personal_assistant = Agent(
     display_interactive_code(
         personal_assistant_example,
         "This assistant remembers all tasks and maintains state across the conversation:",
-        allow_edit=False
+        allow_edit=False,
     )
 
     st.markdown("---")
@@ -554,9 +567,13 @@ personal_assistant = Agent(
     col1, col2, col3 = st.columns([2, 1, 2])
 
     with col2:
-        if st.button("✅ I Understand Memory!", key="understand_memory", type="primary"):
+        if st.button(
+            "✅ I Understand Memory!", key="understand_memory", type="primary"
+        ):
             mark_progress("memory", True)
-            st.success("Excellent! Next, learn about **Routing** - advanced agent orchestration!")
+            st.success(
+                "Excellent! Next, learn about **Routing** - advanced agent orchestration!"
+            )
 
     st.markdown("---")
 

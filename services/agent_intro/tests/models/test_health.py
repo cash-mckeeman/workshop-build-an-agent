@@ -2,22 +2,21 @@
 Tests for the health checking module.
 """
 
-import asyncio
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
-from dataclasses import dataclass
+from unittest.mock import AsyncMock, Mock, patch
 
-from models.health import (
-    HealthStatus,
-    HealthCheckResult,
+import pytest
+
+from src.models.health import (
     HealthChecker,
-    check_provider_health,
+    HealthCheckResult,
+    HealthStatus,
     check_all_providers,
-    get_healthy_providers,
+    check_provider_health,
     get_best_available_provider,
+    get_healthy_providers,
     print_health_status,
 )
-from models.providers import ModelProvider, ProviderType
+from src.models.providers import ModelProvider, ProviderType
 
 
 @pytest.fixture
@@ -56,6 +55,7 @@ def health_checker():
     return HealthChecker()
 
 
+@pytest.mark.unit
 class TestHealthStatus:
     """Test HealthStatus enum."""
 
@@ -66,6 +66,7 @@ class TestHealthStatus:
         assert HealthStatus.UNKNOWN == "unknown"
 
 
+@pytest.mark.unit
 class TestHealthCheckResult:
     """Test HealthCheckResult dataclass."""
 
@@ -77,7 +78,7 @@ class TestHealthCheckResult:
             message="All good",
             response_time_ms=100,
             model_tested="test-model",
-            error=None
+            error=None,
         )
 
         assert result.provider_name == "test_provider"
@@ -90,9 +91,7 @@ class TestHealthCheckResult:
     def test_health_check_result_minimal(self):
         """Test creating HealthCheckResult with minimal parameters."""
         result = HealthCheckResult(
-            provider_name="test",
-            status=HealthStatus.UNHEALTHY,
-            message="Failed"
+            provider_name="test", status=HealthStatus.UNHEALTHY, message="Failed"
         )
 
         assert result.provider_name == "test"
@@ -103,6 +102,7 @@ class TestHealthCheckResult:
         assert result.error is None
 
 
+@pytest.mark.unit
 class TestHealthChecker:
     """Test HealthChecker class."""
 
@@ -112,7 +112,9 @@ class TestHealthChecker:
         assert checker.timeout_seconds == 30
 
     @pytest.mark.asyncio
-    async def test_check_provider_health_unavailable(self, health_checker, mock_provider):
+    async def test_check_provider_health_unavailable(
+        self, health_checker, mock_provider
+    ):
         """Test health check when provider is not available."""
         mock_provider.is_available = False
 
@@ -124,7 +126,9 @@ class TestHealthChecker:
         assert result.error == "Configuration issue"
 
     @pytest.mark.asyncio
-    async def test_check_provider_health_missing_api_key(self, health_checker, mock_provider):
+    async def test_check_provider_health_missing_api_key(
+        self, health_checker, mock_provider
+    ):
         """Test health check when API key is missing."""
         mock_provider.get_api_key.return_value = None
 
@@ -136,7 +140,9 @@ class TestHealthChecker:
         assert result.error == "Authentication issue"
 
     @pytest.mark.asyncio
-    async def test_check_provider_health_invalid_api_key(self, health_checker, mock_provider):
+    async def test_check_provider_health_invalid_api_key(
+        self, health_checker, mock_provider
+    ):
         """Test health check when API key is too short."""
         mock_provider.get_api_key.return_value = "short"
 
@@ -172,17 +178,16 @@ class TestHealthChecker:
         assert result.error == "Test error"
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
-    async def test_check_ollama_health_success(self, mock_client_class, health_checker, mock_ollama_provider):
+    @patch("httpx.AsyncClient")
+    async def test_check_ollama_health_success(
+        self, mock_client_class, health_checker, mock_ollama_provider
+    ):
         """Test successful Ollama health check."""
         # Mock httpx response
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "models": [
-                {"name": "llama2"},
-                {"name": "mistral"}
-            ]
+            "models": [{"name": "llama2"}, {"name": "mistral"}]
         }
 
         mock_client = AsyncMock()
@@ -196,16 +201,14 @@ class TestHealthChecker:
         assert result.model_tested == "llama2"
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
-    async def test_check_ollama_health_model_not_found(self, mock_client_class, health_checker, mock_ollama_provider):
+    @patch("httpx.AsyncClient")
+    async def test_check_ollama_health_model_not_found(
+        self, mock_client_class, health_checker, mock_ollama_provider
+    ):
         """Test Ollama health check when model is not available."""
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "models": [
-                {"name": "mistral"}
-            ]
-        }
+        mock_response.json.return_value = {"models": [{"name": "mistral"}]}
 
         mock_client = AsyncMock()
         mock_client.get.return_value = mock_response
@@ -218,8 +221,10 @@ class TestHealthChecker:
         assert result.error == "Model not available"
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
-    async def test_check_ollama_health_server_error(self, mock_client_class, health_checker, mock_ollama_provider):
+    @patch("httpx.AsyncClient")
+    async def test_check_ollama_health_server_error(
+        self, mock_client_class, health_checker, mock_ollama_provider
+    ):
         """Test Ollama health check when server returns error."""
         mock_response = Mock()
         mock_response.status_code = 500
@@ -235,15 +240,18 @@ class TestHealthChecker:
         assert result.error == "Server error"
 
     @pytest.mark.asyncio
-    async def test_check_ollama_health_import_error(self, health_checker, mock_ollama_provider):
+    async def test_check_ollama_health_import_error(
+        self, health_checker, mock_ollama_provider
+    ):
         """Test Ollama health check when httpx is not available."""
+
         # Mock the import to raise ImportError when httpx is imported
         def mock_import(name, *args, **kwargs):
-            if name == 'httpx':
+            if name == "httpx":
                 raise ImportError("No module named 'httpx'")
             return __import__(name, *args, **kwargs)
 
-        with patch('builtins.__import__', side_effect=mock_import):
+        with patch("builtins.__import__", side_effect=mock_import):
             result = await health_checker._check_ollama_health(mock_ollama_provider)
 
         assert result.status == HealthStatus.UNHEALTHY
@@ -251,8 +259,10 @@ class TestHealthChecker:
         assert result.error == "Missing dependency"
 
     @pytest.mark.asyncio
-    @patch('httpx.AsyncClient')
-    async def test_check_ollama_health_connection_error(self, mock_client_class, health_checker, mock_ollama_provider):
+    @patch("httpx.AsyncClient")
+    async def test_check_ollama_health_connection_error(
+        self, mock_client_class, health_checker, mock_ollama_provider
+    ):
         """Test Ollama health check when connection fails."""
         mock_client = AsyncMock()
         mock_client.get.side_effect = Exception("Connection refused")
@@ -264,11 +274,13 @@ class TestHealthChecker:
         assert "Cannot connect to Ollama server" in result.message
         assert result.error == "Connection refused"
 
-    def test_get_availability_reason_missing_env_var(self, health_checker, mock_provider):
+    def test_get_availability_reason_missing_env_var(
+        self, health_checker, mock_provider
+    ):
         """Test getting availability reason for missing environment variable."""
         mock_provider.env_var = "MISSING_API_KEY"
 
-        with patch('os.getenv') as mock_getenv:
+        with patch("os.getenv") as mock_getenv:
             mock_getenv.return_value = None
             reason = health_checker._get_availability_reason(mock_provider)
 
@@ -286,7 +298,7 @@ class TestHealthChecker:
     @pytest.mark.asyncio
     async def test_check_all_providers(self, health_checker):
         """Test checking all providers."""
-        with patch('models.health.PROVIDERS') as mock_providers:
+        with patch("src.models.health.PROVIDERS") as mock_providers:
             mock_provider1 = Mock()
             mock_provider1.name = "provider1"
             mock_provider2 = Mock()
@@ -294,7 +306,7 @@ class TestHealthChecker:
 
             mock_providers.items.return_value = [
                 ("provider1", mock_provider1),
-                ("provider2", mock_provider2)
+                ("provider2", mock_provider2),
             ]
 
             # Mock the health check method
@@ -302,7 +314,7 @@ class TestHealthChecker:
                 return HealthCheckResult(
                     provider_name=provider.name,
                     status=HealthStatus.HEALTHY,
-                    message="OK"
+                    message="OK",
                 )
 
             health_checker.check_provider_health = mock_check
@@ -316,12 +328,13 @@ class TestHealthChecker:
             assert results["provider2"].status == HealthStatus.HEALTHY
 
 
+@pytest.mark.unit
 class TestSyncFunctions:
     """Test synchronous convenience functions."""
 
     def test_check_provider_health_not_found(self):
         """Test sync health check for non-existent provider."""
-        with patch('models.health.PROVIDERS', {}):
+        with patch("src.models.health.PROVIDERS", {}):
             result = check_provider_health("nonexistent")
 
             assert result.provider_name == "nonexistent"
@@ -334,13 +347,11 @@ class TestSyncFunctions:
         mock_provider = Mock()
         mock_provider.name = "test"
 
-        with patch('models.health.PROVIDERS', {"test": mock_provider}):
-            with patch('models.health.HealthChecker') as mock_checker_class:
+        with patch("src.models.health.PROVIDERS", {"test": mock_provider}):
+            with patch("src.models.health.HealthChecker") as mock_checker_class:
                 mock_checker = Mock()
                 mock_result = HealthCheckResult(
-                    provider_name="test",
-                    status=HealthStatus.HEALTHY,
-                    message="OK"
+                    provider_name="test", status=HealthStatus.HEALTHY, message="OK"
                 )
 
                 # Mock the async method
@@ -350,7 +361,7 @@ class TestSyncFunctions:
                 mock_checker.check_provider_health = mock_check
                 mock_checker_class.return_value = mock_checker
 
-                with patch('asyncio.get_event_loop') as mock_get_loop:
+                with patch("asyncio.get_event_loop") as mock_get_loop:
                     mock_loop = Mock()
                     mock_loop.run_until_complete.return_value = mock_result
                     mock_get_loop.return_value = mock_loop
@@ -362,11 +373,13 @@ class TestSyncFunctions:
 
     def test_check_all_providers_sync(self):
         """Test sync check all providers."""
-        with patch('models.health.HealthChecker') as mock_checker_class:
+        with patch("src.models.health.HealthChecker") as mock_checker_class:
             mock_checker = Mock()
             mock_results = {
                 "provider1": HealthCheckResult("provider1", HealthStatus.HEALTHY, "OK"),
-                "provider2": HealthCheckResult("provider2", HealthStatus.UNHEALTHY, "Failed")
+                "provider2": HealthCheckResult(
+                    "provider2", HealthStatus.UNHEALTHY, "Failed"
+                ),
             }
 
             async def mock_check_all():
@@ -375,7 +388,7 @@ class TestSyncFunctions:
             mock_checker.check_all_providers = mock_check_all
             mock_checker_class.return_value = mock_checker
 
-            with patch('asyncio.get_event_loop') as mock_get_loop:
+            with patch("asyncio.get_event_loop") as mock_get_loop:
                 mock_loop = Mock()
                 mock_loop.run_until_complete.return_value = mock_results
                 mock_get_loop.return_value = mock_loop
@@ -390,11 +403,13 @@ class TestSyncFunctions:
         """Test getting healthy providers."""
         mock_results = {
             "provider1": HealthCheckResult("provider1", HealthStatus.HEALTHY, "OK"),
-            "provider2": HealthCheckResult("provider2", HealthStatus.UNHEALTHY, "Failed"),
-            "provider3": HealthCheckResult("provider3", HealthStatus.HEALTHY, "OK")
+            "provider2": HealthCheckResult(
+                "provider2", HealthStatus.UNHEALTHY, "Failed"
+            ),
+            "provider3": HealthCheckResult("provider3", HealthStatus.HEALTHY, "OK"),
         }
 
-        with patch('models.health.check_all_providers', return_value=mock_results):
+        with patch("src.models.health.check_all_providers", return_value=mock_results):
             healthy = get_healthy_providers()
 
             assert len(healthy) == 2
@@ -404,28 +419,34 @@ class TestSyncFunctions:
 
     def test_get_best_available_provider_with_preferences(self):
         """Test getting best available provider with preferences."""
-        with patch('models.health.get_healthy_providers', return_value=["groq", "ollama"]):
+        with patch(
+            "src.models.health.get_healthy_providers", return_value=["groq", "ollama"]
+        ):
             # Should return groq since it's preferred and available
             best = get_best_available_provider(["openai", "groq", "ollama"])
             assert best == "groq"
 
     def test_get_best_available_provider_default_preferences(self):
         """Test getting best available provider with default preferences."""
-        with patch('models.health.get_healthy_providers', return_value=["groq", "ollama"]):
+        with patch(
+            "src.models.health.get_healthy_providers", return_value=["groq", "ollama"]
+        ):
             # Should return groq since it comes before ollama in default preferences
             best = get_best_available_provider()
             assert best == "groq"
 
     def test_get_best_available_provider_fallback(self):
         """Test getting best available provider with fallback."""
-        with patch('models.health.get_healthy_providers', return_value=["unknown_provider"]):
+        with patch(
+            "src.models.health.get_healthy_providers", return_value=["unknown_provider"]
+        ):
             # Should return the only available provider even if not in preferences
             best = get_best_available_provider(["openai", "anthropic"])
             assert best == "unknown_provider"
 
     def test_get_best_available_provider_none_available(self):
         """Test getting best available provider when none available."""
-        with patch('models.health.get_healthy_providers', return_value=[]):
+        with patch("src.models.health.get_healthy_providers", return_value=[]):
             best = get_best_available_provider()
             assert best is None
 
@@ -437,17 +458,17 @@ class TestSyncFunctions:
                 status=HealthStatus.HEALTHY,
                 message="All good",
                 response_time_ms=100,
-                model_tested="test-model"
+                model_tested="test-model",
             ),
             "provider2": HealthCheckResult(
                 provider_name="provider2",
                 status=HealthStatus.UNHEALTHY,
                 message="Failed",
-                error="Connection error"
-            )
+                error="Connection error",
+            ),
         }
 
-        with patch('models.health.check_all_providers', return_value=mock_results):
+        with patch("src.models.health.check_all_providers", return_value=mock_results):
             print_health_status()
 
             captured = capsys.readouterr()
@@ -464,10 +485,12 @@ class TestSyncFunctions:
     def test_print_health_status_no_healthy_providers(self, capsys):
         """Test printing health status when no providers are healthy."""
         mock_results = {
-            "provider1": HealthCheckResult("provider1", HealthStatus.UNHEALTHY, "Failed")
+            "provider1": HealthCheckResult(
+                "provider1", HealthStatus.UNHEALTHY, "Failed"
+            )
         }
 
-        with patch('models.health.check_all_providers', return_value=mock_results):
+        with patch("src.models.health.check_all_providers", return_value=mock_results):
             print_health_status()
 
             captured = capsys.readouterr()

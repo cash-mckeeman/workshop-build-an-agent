@@ -5,23 +5,24 @@ This module provides a centralized factory for creating different types of agent
 with automatic provider selection, health checking, and configuration management.
 """
 
-from typing import Optional, Dict, Any, List
 from enum import Enum
+from typing import Any
 
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
-from models import get_available_providers, get_provider_config, load_model_settings
-from models.health import get_best_available_provider, HealthChecker
-from agents.basic_agent import create_basic_agent
-from agents.math_agent import create_math_agent
-from agents.demo_agent import create_demo_agent
-from agents.tool_agent import create_tool_agent
+from src.agents.basic_agent import create_basic_agent
+from src.agents.demo_agent import create_demo_agent
+from src.agents.math_agent import create_math_agent
+from src.agents.tool_agent import create_tool_agent
+from src.models import get_available_providers, get_provider_config, load_model_settings
+from src.models.health import HealthChecker, get_best_available_provider
 
 
 class AgentType(str, Enum):
     """Types of agents that can be created."""
+
     BASIC = "basic"
     MATH = "math"
     DEMO = "demo"
@@ -38,9 +39,9 @@ class AgentFactory:
     def create_agent(
         self,
         agent_type: AgentType,
-        provider_name: Optional[str] = None,
-        model_name: Optional[str] = None,
-        **kwargs
+        provider_name: str | None = None,
+        model_name: str | None = None,
+        **kwargs,
     ) -> Agent[None, str]:
         """Create an agent of the specified type.
 
@@ -69,7 +70,9 @@ class AgentFactory:
             elif agent_type == AgentType.DEMO:
                 return create_demo_agent(model_provider, **kwargs)
             elif agent_type == AgentType.TOOL:
-                return create_tool_agent(model_provider, include_math_tools=True, **kwargs)
+                return create_tool_agent(
+                    model_provider, include_math_tools=True, **kwargs
+                )
             else:
                 raise ValueError(f"Unknown agent type: {agent_type}")
 
@@ -77,9 +80,7 @@ class AgentFactory:
             raise RuntimeError(f"Failed to create {agent_type} agent: {str(e)}") from e
 
     def _get_model_provider(
-        self,
-        provider_name: Optional[str] = None,
-        model_name: Optional[str] = None
+        self, provider_name: str | None = None, model_name: str | None = None
     ):
         """Get the configured model for PydanticAI.
 
@@ -106,7 +107,9 @@ class AgentFactory:
 
             # Special handling for Ollama
             if provider.provider_type.value == "ollama":
-                return self._create_ollama_model(model, provider.base_url or "http://localhost:11434")
+                return self._create_ollama_model(
+                    model, provider.base_url or "http://localhost:11434"
+                )
 
             # For other providers, use the string format
             return provider.get_model_id(model)
@@ -123,7 +126,9 @@ class AgentFactory:
 
         # Special handling for Ollama
         if provider.provider_type.value == "ollama":
-            return self._create_ollama_model(model, provider.base_url or "http://localhost:11434")
+            return self._create_ollama_model(
+                model, provider.base_url or "http://localhost:11434"
+            )
 
         return provider.get_model_id(model)
 
@@ -138,19 +143,18 @@ class AgentFactory:
             Configured OpenAIChatModel for Ollama
         """
         # Ensure base_url has /v1 suffix for OpenAI compatibility
-        if not base_url.endswith('/v1'):
+        if not base_url.endswith("/v1"):
             base_url = f"{base_url}/v1"
 
         # Remove :latest tag if present, as Ollama API doesn't need it
-        if model_name.endswith(':latest'):
-            model_name = model_name.replace(':latest', '')
+        if model_name.endswith(":latest"):
+            model_name = model_name.replace(":latest", "")
 
         return OpenAIChatModel(
-            model_name=model_name,
-            provider=OpenAIProvider(base_url=base_url)
+            model_name=model_name, provider=OpenAIProvider(base_url=base_url)
         )
 
-    def get_available_configurations(self) -> Dict[str, List[str]]:
+    def get_available_configurations(self) -> dict[str, list[str]]:
         """Get all available provider and model configurations.
 
         Returns:
@@ -163,9 +167,7 @@ class AgentFactory:
         }
 
     def create_tutorial_agent(
-        self,
-        step: str,
-        provider_preference: Optional[List[str]] = None
+        self, step: str, provider_preference: list[str] | None = None
     ) -> Agent[None, str]:
         """Create an agent configured for a specific tutorial step.
 
@@ -199,8 +201,7 @@ class AgentFactory:
         return self.create_agent(agent_type, provider_name=provider_name)
 
     def create_math_tutorial_agent(
-        self,
-        provider_name: Optional[str] = None
+        self, provider_name: str | None = None
     ) -> Agent[None, str]:
         """Create the exact math agent from the original tutorial.
 
@@ -240,16 +241,17 @@ class AgentFactory:
         print()
 
         # Show health status
-        from models.health import print_health_status
+        from src.models.health import print_health_status
+
         print_health_status()
 
 
 # Convenience functions for easy agent creation
 def create_agent(
     agent_type: str,
-    provider_name: Optional[str] = None,
-    model_name: Optional[str] = None,
-    **kwargs
+    provider_name: str | None = None,
+    model_name: str | None = None,
+    **kwargs,
 ) -> Agent[None, str]:
     """Convenience function to create an agent.
 
@@ -294,13 +296,13 @@ def create_best_available_agent(agent_type: str = "math") -> Agent[None, str]:
     return factory.create_agent(agent_type_enum)
 
 
-def get_recommended_setup() -> Dict[str, Any]:
+def get_recommended_setup() -> dict[str, Any]:
     """Get recommended setup for the tutorial based on available providers.
 
     Returns:
         Dictionary with recommended configuration
     """
-    factory = AgentFactory()
+    _ = AgentFactory()
     best_provider = get_best_available_provider()
 
     if not best_provider:
@@ -310,8 +312,8 @@ def get_recommended_setup() -> Dict[str, Any]:
             "setup_instructions": {
                 "option_1": "Set OPENAI_API_KEY environment variable",
                 "option_2": "Set ANTHROPIC_API_KEY environment variable",
-                "option_3": "Install and start Ollama: 'ollama serve'"
-            }
+                "option_3": "Install and start Ollama: 'ollama serve'",
+            },
         }
 
     provider = get_provider_config(best_provider)
@@ -321,7 +323,7 @@ def get_recommended_setup() -> Dict[str, Any]:
         "recommended_model": provider.default_model,
         "provider_description": provider.description,
         "full_model_id": provider.get_model_id(),
-        "tutorial_steps": ["basic", "math", "demo", "tools"]
+        "tutorial_steps": ["basic", "math", "demo", "tools"],
     }
 
 
@@ -350,7 +352,7 @@ def demo_factory():
         print("\n🤖 Creating Sample Agents:")
         for agent_type in ["basic", "math", "demo", "tool"]:
             try:
-                agent = factory.create_agent(AgentType(agent_type))
+                _ = factory.create_agent(AgentType(agent_type))
                 print(f"✅ {agent_type.capitalize()} agent created successfully")
             except Exception as e:
                 print(f"❌ Failed to create {agent_type} agent: {e}")
@@ -373,7 +375,7 @@ if __name__ == "__main__":
     try:
         agent = create_tutorial_agent("math")
         result = agent.run_sync("What is 3 plus 12?")
-        print(f"Question: What is 3 plus 12?")
+        print("Question: What is 3 plus 12?")
         print(f"Answer: {result.output}")
     except Exception as e:
         print(f"❌ Error: {e}")

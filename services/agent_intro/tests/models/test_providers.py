@@ -1,22 +1,25 @@
 """Tests for models.providers module."""
 
-import pytest
 import os
 from unittest.mock import patch
-from models.providers import (
-    ProviderType,
-    ModelProvider,
+
+import pytest
+
+from src.models.providers import (
     PROVIDERS,
+    ModelProvider,
+    ProviderType,
     get_available_providers,
+    get_model_id,
     get_provider_config,
     get_recommended_provider,
+    get_tutorial_recommendations,
     list_models_for_provider,
-    get_model_id,
     validate_model_combination,
-    get_tutorial_recommendations
 )
 
 
+@pytest.mark.unit
 class TestProviderType:
     """Test cases for ProviderType enum."""
 
@@ -29,6 +32,7 @@ class TestProviderType:
         assert ProviderType.OLLAMA == "ollama"
 
 
+@pytest.mark.unit
 class TestModelProvider:
     """Test cases for ModelProvider dataclass."""
 
@@ -41,7 +45,7 @@ class TestModelProvider:
             available_models=["test-model", "other-model"],
             requires_api_key=True,
             env_var="TEST_API_KEY",
-            description="Test provider"
+            description="Test provider",
         )
 
         assert provider.name == "Test Provider"
@@ -60,7 +64,7 @@ class TestModelProvider:
             provider_type=ProviderType.OPENAI,
             default_model="test",
             available_models=["test"],
-            requires_api_key=False
+            requires_api_key=False,
         )
 
         assert provider.recommended_for == []
@@ -71,12 +75,12 @@ class TestModelProvider:
             default_model="test",
             available_models=["test"],
             requires_api_key=False,
-            recommended_for=["testing"]
+            recommended_for=["testing"],
         )
 
         assert provider_with_recommendations.recommended_for == ["testing"]
 
-    @patch.dict(os.environ, {'TEST_KEY': 'test_value'})
+    @patch.dict(os.environ, {"TEST_KEY": "test_value"})
     def test_is_available_with_api_key(self):
         """Test is_available when API key is required and present."""
         provider = ModelProvider(
@@ -85,7 +89,7 @@ class TestModelProvider:
             default_model="test",
             available_models=["test"],
             requires_api_key=True,
-            env_var="TEST_KEY"
+            env_var="TEST_KEY",
         )
 
         assert provider.is_available == True
@@ -98,7 +102,7 @@ class TestModelProvider:
             default_model="test",
             available_models=["test"],
             requires_api_key=True,
-            env_var="MISSING_KEY"
+            env_var="MISSING_KEY",
         )
 
         assert provider.is_available == False
@@ -110,7 +114,7 @@ class TestModelProvider:
             provider_type=ProviderType.OLLAMA,
             default_model="test",
             available_models=["test"],
-            requires_api_key=False
+            requires_api_key=False,
         )
 
         assert provider.is_available == True
@@ -122,7 +126,7 @@ class TestModelProvider:
             provider_type=ProviderType.OPENAI,
             default_model="default-model",
             available_models=["default-model", "other-model"],
-            requires_api_key=False
+            requires_api_key=False,
         )
 
         # Test with default model
@@ -131,7 +135,7 @@ class TestModelProvider:
         # Test with custom model
         assert provider.get_model_id("other-model") == "openai:other-model"
 
-    @patch.dict(os.environ, {'TEST_KEY': 'secret_key_value'})
+    @patch.dict(os.environ, {"TEST_KEY": "secret_key_value"})
     def test_get_api_key(self):
         """Test getting API key from environment."""
         provider = ModelProvider(
@@ -140,7 +144,7 @@ class TestModelProvider:
             default_model="test",
             available_models=["test"],
             requires_api_key=True,
-            env_var="TEST_KEY"
+            env_var="TEST_KEY",
         )
 
         assert provider.get_api_key() == "secret_key_value"
@@ -152,12 +156,13 @@ class TestModelProvider:
             provider_type=ProviderType.OLLAMA,
             default_model="test",
             available_models=["test"],
-            requires_api_key=False
+            requires_api_key=False,
         )
 
         assert provider.get_api_key() is None
 
 
+@pytest.mark.unit
 class TestProviderFunctions:
     """Test cases for provider utility functions."""
 
@@ -171,7 +176,7 @@ class TestProviderFunctions:
 
     def test_provider_configurations(self):
         """Test that provider configurations are valid."""
-        for name, provider in PROVIDERS.items():
+        for _name, provider in PROVIDERS.items():
             assert isinstance(provider, ModelProvider)
             assert provider.name
             assert provider.default_model
@@ -187,7 +192,7 @@ class TestProviderFunctions:
         missing_config = get_provider_config("nonexistent")
         assert missing_config is None
 
-    @patch.dict(os.environ, {'OPENAI_API_KEY': 'test_key'})
+    @patch.dict(os.environ, {"OPENAI_API_KEY": "test_key"})
     def test_get_available_providers(self):
         """Test getting available providers."""
         available = get_available_providers()
@@ -220,19 +225,18 @@ class TestProviderFunctions:
         """Test validating model combinations."""
         # Valid combinations
         assert validate_model_combination("openai", "gpt-4o-mini") == True
-        assert validate_model_combination("anthropic", "claude-3-haiku-20240307") == True
+        assert (
+            validate_model_combination("anthropic", "claude-3-haiku-20240307") == True
+        )
 
         # Invalid combinations
         assert validate_model_combination("openai", "claude-3-haiku") == False
         assert validate_model_combination("nonexistent", "any-model") == False
 
-    @patch('models.providers.get_available_providers')
+    @patch("src.models.providers.get_available_providers")
     def test_get_recommended_provider(self, mock_available):
         """Test getting recommended provider for use case."""
-        mock_providers = {
-            "openai": PROVIDERS["openai"],
-            "groq": PROVIDERS["groq"]
-        }
+        mock_providers = {"openai": PROVIDERS["openai"], "groq": PROVIDERS["groq"]}
         mock_available.return_value = mock_providers
 
         # Test specific recommendation
@@ -249,14 +253,14 @@ class TestProviderFunctions:
         no_provider = get_recommended_provider("anything")
         assert no_provider is None
 
-    @patch('models.providers.get_available_providers')
+    @patch("src.models.providers.get_available_providers")
     def test_get_tutorial_recommendations(self, mock_available):
         """Test getting tutorial recommendations."""
         mock_available.return_value = {
             "openai": PROVIDERS["openai"],
             "ollama": PROVIDERS["ollama"],
             "huggingface": PROVIDERS["huggingface"],
-            "groq": PROVIDERS["groq"]
+            "groq": PROVIDERS["groq"],
         }
 
         recommendations = get_tutorial_recommendations()

@@ -3,21 +3,22 @@ Interactive demo components for the Streamlit app.
 """
 
 import streamlit as st
-from typing import Any, Dict, List, Optional
-from streamlit_app.utils.session_state import (
-    add_message,
-    get_messages,
-    clear_messages,
-    initialize_session_state
+
+from src.streamlit_app.utils.formatters import (
+    format_error_message,
 )
-from streamlit_app.utils.formatters import format_agent_response, format_error_message
-from tools.agent_helpers import analyze_agent_execution, get_agent_capabilities
+from src.streamlit_app.utils.session_state import (
+    add_message,
+    clear_messages,
+    get_messages,
+    initialize_session_state,
+)
+from src.tools.agent_helpers import get_agent_capabilities
 
 
 def create_live_agent_chat(agent_type: str = "basic"):
     """Create interactive chat interface with the agent."""
-    from factory import get_recommended_setup, create_tutorial_agent
-    from models import get_available_providers, check_all_providers
+    from src.factory import create_tutorial_agent, get_recommended_setup
 
     st.subheader(f"💬 Chat with {agent_type.title()} Agent")
 
@@ -74,7 +75,7 @@ def tool_execution_sandbox():
     tool_type = st.selectbox(
         "Select Tool Type",
         ["Math Tools", "Text Tools", "Utility Tools"],
-        help="Choose which type of tools to test"
+        help="Choose which type of tools to test",
     )
 
     if tool_type == "Math Tools":
@@ -112,7 +113,8 @@ def math_tool_sandbox():
     # Show how these would be used in an agent
     st.markdown("---")
     st.markdown("**How these tools work in an agent:**")
-    st.code("""
+    st.code(
+        """
 @agent.tool
 def add(a: int, b: int) -> int:
     \"\"\"Add two numbers together.\"\"\"
@@ -126,7 +128,9 @@ def multiply(a: int, b: int) -> int:
 # Agent automatically calls the right tool
 result = agent.run_sync("What is 5 plus 3?")
 # Agent calls add(5, 3) and responds: "The answer is 8"
-    """, language="python")
+    """,
+        language="python",
+    )
 
 
 def text_tool_sandbox():
@@ -137,7 +141,9 @@ def text_tool_sandbox():
 
     with col1:
         st.markdown("**Word Count Tool**")
-        text1 = st.text_input("Enter text", value="Hello beautiful world", key="wordcount_text")
+        text1 = st.text_input(
+            "Enter text", value="Hello beautiful world", key="wordcount_text"
+        )
 
         if st.button("Count Words", key="test_wordcount"):
             count = len(text1.split())
@@ -171,6 +177,7 @@ def utility_tool_sandbox():
         st.markdown("**Current Time Tool**")
         if st.button("Get Current Time", key="test_time"):
             import datetime
+
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             st.success(f"current_time() = {current_time}")
 
@@ -181,6 +188,7 @@ def utility_tool_sandbox():
 
         if st.button("Generate Random", key="test_random"):
             import random
+
             result = random.randint(int(min_val), int(max_val))
             st.success(f"random_number({min_val}, {max_val}) = {result}")
 
@@ -192,9 +200,10 @@ def utility_tool_sandbox():
             "Bananas are berries, but strawberries aren't.",
             "A group of flamingos is called a 'flamboyance'.",
             "Honey never spoils - archaeologists have found edible honey in ancient Egyptian tombs.",
-            "A cloud can weigh more than a million pounds!"
+            "A cloud can weigh more than a million pounds!",
         ]
         import random
+
         fact = random.choice(facts)
         st.success(f"fun_fact() = {fact}")
 
@@ -211,25 +220,28 @@ def agent_comparison_demo():
         "Tell me a fun fact and calculate 7 + 3",
         "What's 'hello' spelled backwards?",
         "Is 'racecar' a palindrome?",
-        "Get me a random fact"
+        "Get me a random fact",
     ]
 
     question = st.selectbox(
         "Choose a test question:",
         test_questions,
-        help="See how different agent types handle the same question"
+        help="See how different agent types handle the same question",
     )
 
     # Debug options (placed before the button to persist state)
     col1, col2 = st.columns(2)
     with col1:
-        enable_verbose_debug = st.checkbox("🔬 Enable verbose debugging", key="global_verbose_debug")
+        enable_verbose_debug = st.checkbox(
+            "🔬 Enable verbose debugging", key="global_verbose_debug"
+        )
     with col2:
-        enable_basic_debug = st.checkbox("🔍 Enable basic debugging", key="global_basic_debug")
+        enable_basic_debug = st.checkbox(
+            "🔍 Enable basic debugging", key="global_basic_debug"
+        )
 
     if st.button("🚀 Test All Agent Types", key="compare_agents"):
-        from factory import get_recommended_setup, create_tutorial_agent
-        from models import get_available_providers, check_all_providers
+        from src.factory import create_tutorial_agent, get_recommended_setup
 
         setup = get_recommended_setup()
         if setup["status"] != "ready":
@@ -249,7 +261,7 @@ def agent_comparison_demo():
             ("basic", "Basic Agent (MODEL only)"),
             ("math", "Math Agent (MODEL + MATH TOOLS)"),
             ("demo", "Demo Agent (MODEL + DEMO TOOLS)"),
-            ("tools", "Tool Agent (MODEL + DEMO TOOLS + MATH TOOLS)")
+            ("tools", "Tool Agent (MODEL + DEMO TOOLS + MATH TOOLS)"),
         ]
 
         # Store results in session state for persistence
@@ -267,15 +279,18 @@ def agent_comparison_demo():
 
                     # Store result for debug display
                     st.session_state.agent_results[agent_type] = {
-                        'result': result,
-                        'question': question,
-                        'description': description
+                        "result": result,
+                        "question": question,
+                        "description": description,
                     }
 
                     # Use our new diagnostic utility
                     try:
-                        from tools.agent_helpers import analyze_agent_execution
-                        diagnostics = analyze_agent_execution(result, agent_type, question)
+                        from src.tools.agent_helpers import analyze_agent_execution
+
+                        diagnostics = analyze_agent_execution(
+                            result, agent_type, question
+                        )
 
                         # Show execution summary
                         if diagnostics.execution_summary:
@@ -292,12 +307,14 @@ def agent_comparison_demo():
                         if diagnostics.has_tools_executed and diagnostics.tool_calls:
                             # Prominently display what tools actually returned
                             st.markdown("**🔧 What the tools actually returned:**")
-                            for i, tool_call in enumerate(diagnostics.tool_calls, 1):
+                            for tool_call in diagnostics.tool_calls:
                                 tool_name = tool_call.tool_name or "Unknown Tool"
                                 tool_result = tool_call.result or "No result captured"
                                 if tool_result and tool_result != "No result captured":
                                     # Display the actual tool result prominently
-                                    st.info(f"**{tool_name}()** returned: {tool_result}")
+                                    st.info(
+                                        f"**{tool_name}()** returned: {tool_result}"
+                                    )
 
                                     # Check if agent response matches tool result (for educational purposes)
                                     if setup.get("recommended_provider") == "ollama":
@@ -305,48 +322,75 @@ def agent_comparison_demo():
                                         tool_result_lower = tool_result.lower()
 
                                         # Simple check if tool result is incorporated
-                                        if any(word in agent_response_lower for word in tool_result_lower.split() if len(word) > 3):
-                                            st.success("✅ Agent successfully used the tool result!")
+                                        if any(
+                                            word in agent_response_lower
+                                            for word in tool_result_lower.split()
+                                            if len(word) > 3
+                                        ):
+                                            st.success(
+                                                "✅ Agent successfully used the tool result!"
+                                            )
                                         else:
-                                            st.error(f"❌ **Ollama Limitation**: Agent called the tool but didn't use its result. The agent should have said: '{tool_result}'")
+                                            st.error(
+                                                f"❌ **Ollama Limitation**: Agent called the tool but didn't use its result. The agent should have said: '{tool_result}'"
+                                            )
 
                             with st.expander("🔧 Tool execution details"):
-                                for i, tool_call in enumerate(diagnostics.tool_calls, 1):
+                                for i, tool_call in enumerate(
+                                    diagnostics.tool_calls, 1
+                                ):
                                     tool_name = tool_call.tool_name or "Unknown Tool"
-                                    tool_result = tool_call.result or "No result captured"
+                                    tool_result = (
+                                        tool_call.result or "No result captured"
+                                    )
                                     st.text(f"Tool {i}: {tool_name}")
                                     if tool_call.arguments:
                                         st.text(f"  Arguments: {tool_call.arguments}")
                                     st.text(f"  Result: {tool_result[:200]}...")
 
                         # Show debug info based on global flags
-                        if enable_verbose_debug and hasattr(result, 'all_messages'):
+                        if enable_verbose_debug and hasattr(result, "all_messages"):
                             # Show detailed message parsing with our enhanced parser
-                            from tools.agent_helpers import extract_tool_calls_from_messages
+                            from src.tools.agent_helpers import (
+                                extract_tool_calls_from_messages,
+                            )
+
                             messages = result.all_messages()
                             st.write("**Detailed Message Analysis:**")
-                            with st.expander("📋 Raw message parsing output", expanded=True):
-                                import sys
+                            with st.expander(
+                                "📋 Raw message parsing output", expanded=True
+                            ):
                                 import io
+                                import sys
 
                                 # Capture print output from debug mode
                                 old_stdout = sys.stdout
                                 sys.stdout = buffer = io.StringIO()
 
                                 try:
-                                    tool_calls_debug = extract_tool_calls_from_messages(messages, debug=True)
+                                    extract_tool_calls_from_messages(
+                                        messages, debug=True
+                                    )
                                     debug_output = buffer.getvalue()
                                 finally:
                                     sys.stdout = old_stdout
 
                                 st.code(debug_output, language="text")
 
-                        elif enable_basic_debug and agent_type in ["demo", "tools", "math"]:
-                            st.write(f"**Debug Info:** {diagnostics.total_messages} total messages, {len(diagnostics.tool_calls)} tool calls detected")
-                            if hasattr(result, 'all_messages'):
+                        elif enable_basic_debug and agent_type in [
+                            "demo",
+                            "tools",
+                            "math",
+                        ]:
+                            st.write(
+                                f"**Debug Info:** {diagnostics.total_messages} total messages, {len(diagnostics.tool_calls)} tool calls detected"
+                            )
+                            if hasattr(result, "all_messages"):
                                 messages = result.all_messages()
                                 for i, msg in enumerate(messages):
-                                    st.write(f"Message {i}: Type={type(msg)}, Content={str(msg)[:100]}...")
+                                    st.write(
+                                        f"Message {i}: Type={type(msg)}, Content={str(msg)[:100]}..."
+                                    )
 
                     except Exception as e:
                         st.error(f"Diagnostic error: {e}")
@@ -358,29 +402,36 @@ def agent_comparison_demo():
                     st.error(f"Error with {agent_type} agent: {str(e)}")
 
     # Display debug information outside the execution loop (persists when checkboxes change)
-    if (enable_verbose_debug or enable_basic_debug) and "agent_results" in st.session_state and st.session_state.agent_results:
+    if (
+        (enable_verbose_debug or enable_basic_debug)
+        and "agent_results" in st.session_state
+        and st.session_state.agent_results
+    ):
         st.markdown("---")
         st.markdown("### 🔍 Debug Information")
 
         for agent_type, agent_data in st.session_state.agent_results.items():
-            result = agent_data['result']
-            question = agent_data['question']
+            result = agent_data["result"]
+            question = agent_data["question"]
 
-            with st.expander(f"🔬 Debug info for {agent_type} agent", expanded=enable_verbose_debug):
-                if enable_verbose_debug and hasattr(result, 'all_messages'):
-                    from tools.agent_helpers import extract_tool_calls_from_messages
+            with st.expander(
+                f"🔬 Debug info for {agent_type} agent", expanded=enable_verbose_debug
+            ):
+                if enable_verbose_debug and hasattr(result, "all_messages"):
+                    from src.tools.agent_helpers import extract_tool_calls_from_messages
+
                     messages = result.all_messages()
                     st.write("**Detailed Message Analysis:**")
 
-                    import sys
                     import io
+                    import sys
 
                     # Capture print output from debug mode
                     old_stdout = sys.stdout
                     sys.stdout = buffer = io.StringIO()
 
                     try:
-                        tool_calls_debug = extract_tool_calls_from_messages(messages, debug=True)
+                        extract_tool_calls_from_messages(messages, debug=True)
                         debug_output = buffer.getvalue()
                     finally:
                         sys.stdout = old_stdout
@@ -389,14 +440,19 @@ def agent_comparison_demo():
 
                 elif enable_basic_debug and agent_type in ["demo", "tools", "math"]:
                     # Quick re-analyze for debug info
-                    from tools.agent_helpers import analyze_agent_execution
+                    from src.tools.agent_helpers import analyze_agent_execution
+
                     diagnostics = analyze_agent_execution(result, agent_type, question)
 
-                    st.write(f"**Debug Info:** {diagnostics.total_messages} total messages, {len(diagnostics.tool_calls)} tool calls detected")
-                    if hasattr(result, 'all_messages'):
+                    st.write(
+                        f"**Debug Info:** {diagnostics.total_messages} total messages, {len(diagnostics.tool_calls)} tool calls detected"
+                    )
+                    if hasattr(result, "all_messages"):
                         messages = result.all_messages()
                         for i, msg in enumerate(messages):
-                            st.write(f"Message {i}: Type={type(msg)}, Content={str(msg)[:100]}...")
+                            st.write(
+                                f"Message {i}: Type={type(msg)}, Content={str(msg)[:100]}..."
+                            )
 
 
 def progressive_agent_builder():
@@ -411,37 +467,42 @@ def progressive_agent_builder():
         {
             "title": "Step 1: Choose Your Model",
             "description": "Select the AI model that will power your agent",
-            "component": "🧠 MODEL"
+            "component": "🧠 MODEL",
         },
         {
             "title": "Step 2: Add Tools",
             "description": "Give your agent the ability to perform actions",
-            "component": "🛠️ TOOLS"
+            "component": "🛠️ TOOLS",
         },
         {
             "title": "Step 3: Configure Memory",
             "description": "Enable conversation history and context",
-            "component": "💾 MEMORY"
+            "component": "💾 MEMORY",
         },
         {
             "title": "Step 4: Set Up Routing",
             "description": "Define decision-making logic",
-            "component": "🚦 ROUTING"
-        }
+            "component": "🚦 ROUTING",
+        },
     ]
 
     # Progress indicator
     progress = st.session_state.build_progress / len(steps)
     st.progress(progress)
-    st.markdown(f"Progress: {st.session_state.build_progress}/{len(steps)} steps completed")
+    st.markdown(
+        f"Progress: {st.session_state.build_progress}/{len(steps)} steps completed"
+    )
 
     # Current step
     if st.session_state.build_progress < len(steps):
         current_step = steps[st.session_state.build_progress]
         st.markdown(f"### {current_step['title']}")
-        st.markdown(current_step['description'])
+        st.markdown(current_step["description"])
 
-        if st.button(f"✅ Complete {current_step['component']}", key=f"build_step_{st.session_state.build_progress}"):
+        if st.button(
+            f"✅ Complete {current_step['component']}",
+            key=f"build_step_{st.session_state.build_progress}",
+        ):
             st.session_state.build_progress += 1
             st.success(f"Added {current_step['component']} to your agent!")
             st.rerun()
@@ -478,9 +539,12 @@ def memory_visualization():
         {"role": "user", "content": "Hi, my name is Alice"},
         {"role": "assistant", "content": "Hello Alice! Nice to meet you."},
         {"role": "user", "content": "What's 5 + 3?"},
-        {"role": "assistant", "content": "I'll calculate that for you. [uses add tool] 5 + 3 = 8"},
+        {
+            "role": "assistant",
+            "content": "I'll calculate that for you. [uses add tool] 5 + 3 = 8",
+        },
         {"role": "user", "content": "What's my name?"},
-        {"role": "assistant", "content": "Your name is Alice, as you told me earlier."}
+        {"role": "assistant", "content": "Your name is Alice, as you told me earlier."},
     ]
 
     st.markdown("**Example Conversation:**")
@@ -497,7 +561,9 @@ def memory_visualization():
     - 📝 **Context**: Can reference earlier parts of conversation
     """)
 
-    st.info("💡 This is why the agent can answer 'What's my name?' correctly - it remembers!")
+    st.info(
+        "💡 This is why the agent can answer 'What's my name?' correctly - it remembers!"
+    )
 
 
 def routing_decision_tree():
@@ -513,29 +579,29 @@ def routing_decision_tree():
             "analysis": "Contains mathematical operation",
             "decision": "Use math tool (add)",
             "action": "Call add(5, 3)",
-            "result": "Return: 8"
+            "result": "Return: 8",
         },
         {
             "input": "What time is it?",
             "analysis": "Asking for current time",
             "decision": "Use time tool",
             "action": "Call get_current_time()",
-            "result": "Return: current timestamp"
+            "result": "Return: current timestamp",
         },
         {
             "input": "Hello, how are you?",
             "analysis": "Casual greeting",
             "decision": "Generate text response",
             "action": "Use language model only",
-            "result": "Return: friendly greeting"
+            "result": "Return: friendly greeting",
         },
         {
             "input": "What's 7 × 4 and what time is it?",
             "analysis": "Multiple requests: math + time",
             "decision": "Use multiple tools",
             "action": "Call multiply(7, 4) AND get_current_time()",
-            "result": "Return: both results"
-        }
+            "result": "Return: both results",
+        },
     ]
 
     for i, scenario in enumerate(scenarios, 1):
@@ -545,4 +611,6 @@ def routing_decision_tree():
             st.markdown(f"**⚡ Action:** {scenario['action']}")
             st.markdown(f"**📤 Result:** {scenario['result']}")
 
-    st.info("💡 The routing component analyzes each input and decides the best way to respond!")
+    st.info(
+        "💡 The routing component analyzes each input and decides the best way to respond!"
+    )

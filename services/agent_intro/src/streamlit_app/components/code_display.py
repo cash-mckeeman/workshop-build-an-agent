@@ -2,9 +2,9 @@
 Code display components for the Streamlit app.
 """
 
+from typing import Any
+
 import streamlit as st
-from typing import Any, Dict, List, Optional
-from streamlit_app.utils.formatters import format_code_block, format_code_with_explanation
 
 
 def display_interactive_code(
@@ -12,17 +12,14 @@ def display_interactive_code(
     explanation: str,
     language: str = "python",
     allow_edit: bool = False,
-    key: str = None
+    key: str = None,
 ) -> str:
     """Display code with syntax highlighting and optional editing."""
     st.markdown(explanation)
 
     if allow_edit and key:
         edited_code = st.text_area(
-            "Edit the code:",
-            value=code,
-            height=200,
-            key=f"code_edit_{key}"
+            "Edit the code:", value=code, height=200, key=f"code_edit_{key}"
         )
         st.code(edited_code, language=language)
         return edited_code
@@ -36,7 +33,7 @@ def show_execution_step(
     input_data: Any,
     output_data: Any,
     code: str = None,
-    explanation: str = None
+    explanation: str = None,
 ):
     """Show step-by-step execution with data flow."""
     with st.expander(f"🔍 {step_name}", expanded=False):
@@ -66,11 +63,7 @@ def show_execution_step(
 
 
 def display_code_comparison(
-    title1: str,
-    code1: str,
-    title2: str,
-    code2: str,
-    language: str = "python"
+    title1: str, code1: str, title2: str, code2: str, language: str = "python"
 ):
     """Display two code blocks side by side for comparison."""
     col1, col2 = st.columns(2)
@@ -84,7 +77,7 @@ def display_code_comparison(
         st.code(code2, language=language)
 
 
-def display_code_evolution(steps: List[Dict[str, str]], current_step: int = -1):
+def display_code_evolution(steps: list[dict[str, str]], current_step: int = -1):
     """Display code evolution through multiple steps."""
     st.subheader("Code Evolution")
 
@@ -100,16 +93,16 @@ def display_code_evolution(steps: List[Dict[str, str]], current_step: int = -1):
             st.markdown(f"⏳ Step {i + 1}: {step['title']}")
 
         with st.expander(f"View Step {i + 1} Code", expanded=is_current):
-            if step.get('explanation'):
-                st.markdown(step['explanation'])
-            st.code(step['code'], language=step.get('language', 'python'))
+            if step.get("explanation"):
+                st.markdown(step["explanation"])
+            st.code(step["code"], language=step.get("language", "python"))
 
 
 def display_runnable_code(
     code: str,
     run_button_text: str = "Run Code",
     explanation: str = None,
-    key: str = None
+    key: str = None,
 ) -> bool:
     """Display code with a run button."""
     if explanation:
@@ -121,17 +114,14 @@ def display_runnable_code(
 
 
 def display_tool_signature(
-    tool_name: str,
-    parameters: Dict[str, Any],
-    return_type: str,
-    description: str
+    tool_name: str, parameters: dict[str, Any], return_type: str, description: str
 ):
     """Display tool function signature and documentation."""
     # Create function signature
     param_strs = []
     for param_name, param_info in parameters.items():
-        param_type = param_info.get('type', 'Any')
-        param_desc = param_info.get('description', '')
+        param_type = param_info.get("type", "Any")
+        param_desc = param_info.get("description", "")
         param_strs.append(f"{param_name}: {param_type}")
 
     signature = f"def {tool_name}({', '.join(param_strs)}) -> {return_type}:"
@@ -143,8 +133,8 @@ def display_tool_signature(
         if parameters:
             st.markdown("**Parameters:**")
             for param_name, param_info in parameters.items():
-                param_type = param_info.get('type', 'Any')
-                param_desc = param_info.get('description', 'No description')
+                param_type = param_info.get("type", "Any")
+                param_desc = param_info.get("description", "No description")
                 st.markdown(f"- `{param_name}` ({param_type}): {param_desc}")
 
 
@@ -208,7 +198,7 @@ def display_code_playground(initial_code: str = "", key: str = "playground") -> 
         value=initial_code,
         height=300,
         key=f"playground_{key}",
-        help="Write your Python code here. Click 'Run Code' to execute."
+        help="Write your Python code here. Click 'Run Code' to execute.",
     )
 
     col1, col2 = st.columns([1, 4])

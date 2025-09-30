@@ -1,18 +1,21 @@
 """Tests for factory module."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from pydantic_ai import Agent
-from factory import (
-    AgentType,
+
+from src.factory import (
     AgentFactory,
+    AgentType,
     create_agent,
-    create_tutorial_agent,
     create_best_available_agent,
-    get_recommended_setup
+    create_tutorial_agent,
+    get_recommended_setup,
 )
 
 
+@pytest.mark.unit
 class TestAgentType:
     """Test cases for AgentType enum."""
 
@@ -24,11 +27,12 @@ class TestAgentType:
         assert AgentType.TOOL == "tool"
 
 
+@pytest.mark.unit
 class TestAgentFactory:
     """Test cases for AgentFactory class."""
 
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
     def test_factory_initialization(self, mock_health_checker, mock_load_settings):
         """Test AgentFactory initialization."""
         factory = AgentFactory()
@@ -38,12 +42,17 @@ class TestAgentFactory:
         mock_load_settings.assert_called_once()
         mock_health_checker.assert_called_once()
 
-    @patch('factory.create_basic_agent')
-    @patch('factory.get_best_available_provider')
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
-    def test_create_agent_basic(self, mock_health_checker, mock_load_settings,
-                                mock_get_provider, mock_create_basic):
+    @patch("src.factory.create_basic_agent")
+    @patch("src.factory.get_best_available_provider")
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
+    def test_create_agent_basic(
+        self,
+        mock_health_checker,
+        mock_load_settings,
+        mock_get_provider,
+        mock_create_basic,
+    ):
         """Test creating a basic agent."""
         mock_get_provider.return_value = "openai"
         mock_agent = MagicMock(spec=Agent)
@@ -55,12 +64,17 @@ class TestAgentFactory:
         assert agent == mock_agent
         mock_create_basic.assert_called_once()
 
-    @patch('factory.create_math_agent')
-    @patch('factory.get_best_available_provider')
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
-    def test_create_agent_math(self, mock_health_checker, mock_load_settings,
-                               mock_get_provider, mock_create_math):
+    @patch("src.factory.create_math_agent")
+    @patch("src.factory.get_best_available_provider")
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
+    def test_create_agent_math(
+        self,
+        mock_health_checker,
+        mock_load_settings,
+        mock_get_provider,
+        mock_create_math,
+    ):
         """Test creating a math agent."""
         mock_get_provider.return_value = "openai"
         mock_agent = MagicMock(spec=Agent)
@@ -72,12 +86,17 @@ class TestAgentFactory:
         assert agent == mock_agent
         mock_create_math.assert_called_once()
 
-    @patch('factory.create_demo_agent')
-    @patch('factory.get_best_available_provider')
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
-    def test_create_agent_demo(self, mock_health_checker, mock_load_settings,
-                               mock_get_provider, mock_create_demo):
+    @patch("src.factory.create_demo_agent")
+    @patch("src.factory.get_best_available_provider")
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
+    def test_create_agent_demo(
+        self,
+        mock_health_checker,
+        mock_load_settings,
+        mock_get_provider,
+        mock_create_demo,
+    ):
         """Test creating a demo agent."""
         mock_get_provider.return_value = "openai"
         mock_agent = MagicMock(spec=Agent)
@@ -89,12 +108,17 @@ class TestAgentFactory:
         assert agent == mock_agent
         mock_create_demo.assert_called_once()
 
-    @patch('factory.create_tool_agent')
-    @patch('factory.get_best_available_provider')
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
-    def test_create_agent_tool(self, mock_health_checker, mock_load_settings,
-                               mock_get_provider, mock_create_tool):
+    @patch("src.factory.create_tool_agent")
+    @patch("src.factory.get_best_available_provider")
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
+    def test_create_agent_tool(
+        self,
+        mock_health_checker,
+        mock_load_settings,
+        mock_get_provider,
+        mock_create_tool,
+    ):
         """Test creating a tool agent."""
         mock_get_provider.return_value = "openai"
         mock_agent = MagicMock(spec=Agent)
@@ -106,11 +130,12 @@ class TestAgentFactory:
         assert agent == mock_agent
         mock_create_tool.assert_called_once()
 
-    @patch('factory.get_best_available_provider')
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
-    def test_create_agent_no_provider_available(self, mock_health_checker,
-                                                 mock_load_settings, mock_get_provider):
+    @patch("src.factory.get_best_available_provider")
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
+    def test_create_agent_no_provider_available(
+        self, mock_health_checker, mock_load_settings, mock_get_provider
+    ):
         """Test creating agent when no provider is available."""
         mock_get_provider.return_value = None
 
@@ -119,11 +144,12 @@ class TestAgentFactory:
         with pytest.raises(ValueError, match="No healthy providers available"):
             factory.create_agent(AgentType.BASIC)
 
-    @patch('factory.get_provider_config')
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
-    def test_create_agent_with_specific_provider(self, mock_health_checker,
-                                                  mock_load_settings, mock_get_provider_config):
+    @patch("src.factory.get_provider_config")
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
+    def test_create_agent_with_specific_provider(
+        self, mock_health_checker, mock_load_settings, mock_get_provider_config
+    ):
         """Test creating agent with specific provider."""
         mock_provider = MagicMock()
         mock_provider.is_available = True
@@ -132,7 +158,7 @@ class TestAgentFactory:
 
         factory = AgentFactory()
 
-        with patch('factory.create_basic_agent') as mock_create:
+        with patch("src.factory.create_basic_agent") as mock_create:
             mock_agent = MagicMock(spec=Agent)
             mock_create.return_value = mock_agent
 
@@ -141,11 +167,12 @@ class TestAgentFactory:
             assert agent == mock_agent
             mock_get_provider_config.assert_called_with("openai")
 
-    @patch('factory.get_available_providers')
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
-    def test_get_available_configurations(self, mock_health_checker,
-                                          mock_load_settings, mock_get_available):
+    @patch("src.factory.get_available_providers")
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
+    def test_get_available_configurations(
+        self, mock_health_checker, mock_load_settings, mock_get_available
+    ):
         """Test getting available configurations."""
         mock_provider = MagicMock()
         mock_provider.available_models = ["model1", "model2"]
@@ -157,28 +184,32 @@ class TestAgentFactory:
         assert "openai" in configs
         assert configs["openai"] == ["model1", "model2"]
 
-    @patch('factory.get_best_available_provider')
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
-    def test_create_tutorial_agent(self, mock_health_checker, mock_load_settings,
-                                   mock_get_provider):
+    @patch("src.factory.get_best_available_provider")
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
+    def test_create_tutorial_agent(
+        self, mock_health_checker, mock_load_settings, mock_get_provider
+    ):
         """Test creating a tutorial agent."""
         mock_get_provider.return_value = "openai"
 
         factory = AgentFactory()
 
-        with patch.object(factory, 'create_agent') as mock_create:
+        with patch.object(factory, "create_agent") as mock_create:
             mock_agent = MagicMock(spec=Agent)
             mock_create.return_value = mock_agent
 
             agent = factory.create_tutorial_agent("math")
 
             assert agent == mock_agent
-            mock_create.assert_called_once_with(AgentType.MATH, provider_name="openai")
+            # When no provider_preference is given, provider_name is None
+            mock_create.assert_called_once_with(AgentType.MATH, provider_name=None)
 
-    @patch('factory.load_model_settings')
-    @patch('factory.HealthChecker')
-    def test_create_tutorial_agent_invalid_step(self, mock_health_checker, mock_load_settings):
+    @patch("src.factory.load_model_settings")
+    @patch("src.factory.HealthChecker")
+    def test_create_tutorial_agent_invalid_step(
+        self, mock_health_checker, mock_load_settings
+    ):
         """Test creating tutorial agent with invalid step."""
         factory = AgentFactory()
 
@@ -186,10 +217,11 @@ class TestAgentFactory:
             factory.create_tutorial_agent("invalid_step")
 
 
+@pytest.mark.unit
 class TestConvenienceFunctions:
     """Test cases for convenience functions."""
 
-    @patch('factory.AgentFactory')
+    @patch("src.factory.AgentFactory")
     def test_create_agent_convenience(self, mock_factory_class):
         """Test create_agent convenience function."""
         mock_factory = MagicMock()
@@ -202,7 +234,7 @@ class TestConvenienceFunctions:
         assert agent == mock_agent
         mock_factory.create_agent.assert_called_once_with(AgentType.BASIC, None, None)
 
-    @patch('factory.AgentFactory')
+    @patch("src.factory.AgentFactory")
     def test_create_tutorial_agent_convenience(self, mock_factory_class):
         """Test create_tutorial_agent convenience function."""
         mock_factory = MagicMock()
@@ -215,7 +247,7 @@ class TestConvenienceFunctions:
         assert agent == mock_agent
         mock_factory.create_tutorial_agent.assert_called_once_with("math")
 
-    @patch('factory.AgentFactory')
+    @patch("src.factory.AgentFactory")
     def test_create_best_available_agent_convenience(self, mock_factory_class):
         """Test create_best_available_agent convenience function."""
         mock_factory = MagicMock()
@@ -228,8 +260,8 @@ class TestConvenienceFunctions:
         assert agent == mock_agent
         mock_factory.create_agent.assert_called_once_with(AgentType.TOOL)
 
-    @patch('factory.get_best_available_provider')
-    @patch('factory.get_provider_config')
+    @patch("src.factory.get_best_available_provider")
+    @patch("src.factory.get_provider_config")
     def test_get_recommended_setup_available(self, mock_get_config, mock_get_provider):
         """Test get_recommended_setup with available provider."""
         mock_get_provider.return_value = "openai"
@@ -248,7 +280,7 @@ class TestConvenienceFunctions:
         assert setup["full_model_id"] == "openai:gpt-4o-mini"
         assert "tutorial_steps" in setup
 
-    @patch('factory.get_best_available_provider')
+    @patch("src.factory.get_best_available_provider")
     def test_get_recommended_setup_no_providers(self, mock_get_provider):
         """Test get_recommended_setup with no available providers."""
         mock_get_provider.return_value = None

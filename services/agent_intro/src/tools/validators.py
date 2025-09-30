@@ -25,7 +25,9 @@ def validate_positive_int(value: int) -> int:
     return value
 
 
-def validate_string_length(text: str, min_length: int = 1, max_length: int = 1000) -> str:
+def validate_string_length(
+    text: str, min_length: int = 1, max_length: int = 1000
+) -> str:
     """Validate that a string is within specified length bounds.
 
     Args:
@@ -40,9 +42,13 @@ def validate_string_length(text: str, min_length: int = 1, max_length: int = 100
         ValueError: If the string length is outside the bounds
     """
     if len(text) < min_length:
-        raise ValueError(f"String must be at least {min_length} characters, got {len(text)}")
+        raise ValueError(
+            f"String must be at least {min_length} characters, got {len(text)}"
+        )
     if len(text) > max_length:
-        raise ValueError(f"String must be at most {max_length} characters, got {len(text)}")
+        raise ValueError(
+            f"String must be at most {max_length} characters, got {len(text)}"
+        )
     return text
 
 
@@ -81,7 +87,7 @@ def validate_non_empty(value: Any) -> Any:
         raise ValueError("Value cannot be None")
 
     # Check for empty strings, lists, dicts, etc.
-    if hasattr(value, '__len__') and len(value) == 0:
+    if hasattr(value, "__len__") and len(value) == 0:
         raise ValueError("Value cannot be empty")
 
     return value
@@ -101,7 +107,7 @@ def validate_email_format(email: str) -> str:
     """
     import re
 
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     if not re.match(email_pattern, email):
         raise ValueError(f"Invalid email format: {email}")
     return email
@@ -121,7 +127,7 @@ def validate_url_format(url: str) -> str:
     """
     import re
 
-    url_pattern = r'^https?://[^\s/$.?#].[^\s]*$'
+    url_pattern = r"^https?://[^\s/$.?#].[^\s]*$"
     if not re.match(url_pattern, url):
         raise ValueError(f"Invalid URL format: {url}")
     return url

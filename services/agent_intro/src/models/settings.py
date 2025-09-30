@@ -6,15 +6,17 @@ including YAML configuration files and environment variable overrides.
 """
 
 import os
-import yaml
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 
 @dataclass
 class ModelSettings:
     """Settings for model configuration."""
+
     # Provider settings
     default_provider: str = "openai"
     default_model: str = "gpt-4o-mini"
@@ -26,10 +28,10 @@ class ModelSettings:
     timeout_seconds: int = 30
 
     # Provider-specific overrides
-    provider_settings: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    provider_settings: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     # Model-specific instructions
-    custom_instructions: Dict[str, str] = field(default_factory=dict)
+    custom_instructions: dict[str, str] = field(default_factory=dict)
 
 
 def get_config_path() -> Path:
@@ -51,7 +53,7 @@ def get_config_path() -> Path:
     return default_path
 
 
-def load_yaml_config(config_file: str = "models.yaml") -> Dict[str, Any]:
+def load_yaml_config(config_file: str = "models.yaml") -> dict[str, Any]:
     """Load configuration from YAML file."""
     config_path = get_config_path() / config_file
 
@@ -59,7 +61,7 @@ def load_yaml_config(config_file: str = "models.yaml") -> Dict[str, Any]:
         return {}
 
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path) as f:
             return yaml.safe_load(f) or {}
     except Exception as e:
         print(f"Warning: Could not load {config_file}: {e}")
@@ -123,18 +125,20 @@ def get_instructions_for_mode(mode: str = "beginner") -> str:
             "You are an expert AI assistant for advanced agent development. "
             "Provide comprehensive technical guidance, best practices, and "
             "production considerations. Focus on optimization and scalability."
-        )
+        ),
     }
 
     return instructions.get(mode, instructions["beginner"])
 
 
-def get_provider_settings(provider_name: str, settings: ModelSettings) -> Dict[str, Any]:
+def get_provider_settings(
+    provider_name: str, settings: ModelSettings
+) -> dict[str, Any]:
     """Get settings for a specific provider."""
     return settings.provider_settings.get(provider_name, {})
 
 
-def create_default_config() -> Dict[str, Any]:
+def create_default_config() -> dict[str, Any]:
     """Create a default configuration structure."""
     return {
         "tutorial": {
@@ -147,83 +151,65 @@ def create_default_config() -> Dict[str, Any]:
             "recommended_providers": {
                 "beginner": "openai",
                 "local": "ollama",
-                "free": "huggingface"
+                "free": "huggingface",
             },
             "demo_models": {
                 "fast": "openai:gpt-4o-mini",
                 "capable": "anthropic:claude-3-haiku-20240307",
-                "local": "ollama:llama3.2"
-            }
+                "local": "ollama:llama3.2",
+            },
         },
         "providers": {
             "openai": {
                 "default_model": "gpt-4o-mini",
-                "available_models": [
-                    "gpt-4o",
-                    "gpt-4o-mini",
-                    "gpt-3.5-turbo"
-                ],
+                "available_models": ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
                 "env_var": "OPENAI_API_KEY",
                 "description": "OpenAI's GPT models",
-                "settings": {
-                    "temperature": 0.7,
-                    "max_tokens": 1000
-                }
+                "settings": {"temperature": 0.7, "max_tokens": 1000},
             },
             "anthropic": {
                 "default_model": "claude-3-haiku-20240307",
                 "available_models": [
                     "claude-3-5-sonnet-20241022",
                     "claude-3-haiku-20240307",
-                    "claude-3-sonnet-20240229"
+                    "claude-3-sonnet-20240229",
                 ],
                 "env_var": "ANTHROPIC_API_KEY",
                 "description": "Anthropic's Claude models",
-                "settings": {
-                    "temperature": 0.7,
-                    "max_tokens": 1000
-                }
+                "settings": {"temperature": 0.7, "max_tokens": 1000},
             },
             "huggingface": {
                 "default_model": "microsoft/DialoGPT-medium",
                 "available_models": [
                     "microsoft/DialoGPT-medium",
                     "meta-llama/Llama-2-7b-chat-hf",
-                    "mistralai/Mistral-7B-Instruct-v0.1"
+                    "mistralai/Mistral-7B-Instruct-v0.1",
                 ],
                 "env_var": "HUGGINGFACE_API_KEY",
-                "description": "HuggingFace models via Inference API"
+                "description": "HuggingFace models via Inference API",
             },
             "ollama": {
                 "default_model": "llama3.2",
-                "available_models": [
-                    "llama3.2",
-                    "mistral",
-                    "codellama",
-                    "phi3"
-                ],
-                "connection": {
-                    "host": "localhost",
-                    "port": 11434
-                },
-                "description": "Local Ollama models"
+                "available_models": ["llama3.2", "mistral", "codellama", "phi3"],
+                "connection": {"host": "localhost", "port": 11434},
+                "description": "Local Ollama models",
             },
             "groq": {
                 "default_model": "llama3-8b-8192",
                 "available_models": [
                     "llama3-8b-8192",
                     "mixtral-8x7b-32768",
-                    "gemma-7b-it"
+                    "gemma-7b-it",
                 ],
                 "env_var": "GROQ_API_KEY",
-                "description": "Groq's fast inference models"
-            }
+                "description": "Groq's fast inference models",
+            },
         },
         "instructions": {
             "beginner": "You are a friendly AI assistant helping users learn about agents.",
             "math_tutor": "You are a helpful math assistant. Use tools to perform calculations.",
-            "tool_demo": "You are an assistant with access to various tools. Use them appropriately."
-        }
+            "tool_demo": "You are an assistant with access to various tools. Use them appropriately.",
+        },
     }
 
 
@@ -233,7 +219,7 @@ def save_default_config(config_file: str = "models.yaml"):
     config = create_default_config()
 
     try:
-        with open(config_path, 'w') as f:
+        with open(config_path, "w") as f:
             yaml.dump(config, f, default_flow_style=False, indent=2)
         print(f"✅ Created default configuration: {config_path}")
     except Exception as e:

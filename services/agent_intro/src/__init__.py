@@ -15,26 +15,24 @@ This module supports multiple model providers:
 - Ollama (local/private models)
 """
 
-from factory import (
+# Import main agent types for convenience
+from src.agents.basic_agent import create_basic_agent
+from src.agents.demo_agent import create_demo_agent
+from src.agents.math_agent import create_math_agent
+from src.agents.tool_agent import create_tool_agent
+from src.factory import (
     AgentFactory,
     create_agent,
-    create_tutorial_agent,
     create_best_available_agent,
-    get_recommended_setup
+    create_tutorial_agent,
+    get_recommended_setup,
 )
-
-from models import (
+from src.models import (
+    check_all_providers,
     get_available_providers,
     get_provider_config,
     load_model_settings,
-    check_all_providers
 )
-
-# Import main agent types for convenience
-from agents.basic_agent import create_basic_agent
-from agents.math_agent import create_math_agent
-from agents.demo_agent import create_demo_agent
-from agents.tool_agent import create_tool_agent
 
 __version__ = "1.0.0"
 
@@ -45,13 +43,11 @@ __all__ = [
     "create_tutorial_agent",
     "create_best_available_agent",
     "get_recommended_setup",
-
     # Model management
     "get_available_providers",
     "get_provider_config",
     "load_model_settings",
     "check_all_providers",
-
     # Direct agent creators
     "create_basic_agent",
     "create_math_agent",

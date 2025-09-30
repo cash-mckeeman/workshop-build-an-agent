@@ -6,6 +6,7 @@ mathematical operations, mirroring the original tutorial's add() function.
 """
 
 from typing import Annotated
+
 from pydantic_ai import Agent
 
 
@@ -25,7 +26,9 @@ def add(a: Annotated[int, "First number"], b: Annotated[int, "Second number"]) -
     return a + b
 
 
-def multiply(a: Annotated[int, "First number"], b: Annotated[int, "Second number"]) -> int:
+def multiply(
+    a: Annotated[int, "First number"], b: Annotated[int, "Second number"]
+) -> int:
     """Multiply two integers together.
 
     An additional math tool to demonstrate multiple tool usage.
@@ -42,7 +45,7 @@ def multiply(a: Annotated[int, "First number"], b: Annotated[int, "Second number
 
 def divide(
     a: Annotated[float, "Dividend (number to be divided)"],
-    b: Annotated[float, "Divisor (number to divide by)"]
+    b: Annotated[float, "Divisor (number to divide by)"],
 ) -> float:
     """Divide one number by another.
 
@@ -62,8 +65,7 @@ def divide(
 
 
 def power(
-    base: Annotated[float, "Base number"],
-    exponent: Annotated[float, "Exponent"]
+    base: Annotated[float, "Base number"], exponent: Annotated[float, "Exponent"]
 ) -> float:
     """Raise a number to a power.
 
@@ -74,7 +76,7 @@ def power(
     Returns:
         base raised to the power of exponent
     """
-    return base ** exponent
+    return base**exponent
 
 
 def register_math_tools(agent: Agent) -> Agent:

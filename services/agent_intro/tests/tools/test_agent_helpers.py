@@ -1,29 +1,33 @@
 """Tests for tools.agent_helpers module."""
 
-import pytest
 import inspect
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 from pydantic_ai import RunContext
-from tools.agent_helpers import (
-    with_run_context,
-    register_tool_with_context,
+
+from src.tools.agent_helpers import (
+    AgentDiagnostics,
+    ToolCallInfo,
+    analyze_agent_execution,
     create_tool_wrapper,
+    enhance_agent_response,
+    extract_tool_calls_from_messages,
+    format_tool_execution_details,
     make_agent_tools,
     register_multiple_tools,
-    ToolCallInfo,
-    AgentDiagnostics,
-    extract_tool_calls_from_messages,
-    analyze_agent_execution,
-    format_tool_execution_details,
-    enhance_agent_response
+    register_tool_with_context,
+    with_run_context,
 )
 
 
+@pytest.mark.unit
 class TestWithRunContext:
     """Test cases for with_run_context decorator."""
 
     def test_with_run_context_basic(self):
         """Test basic functionality of with_run_context decorator."""
+
         def simple_func(a: int, b: int) -> int:
             return a + b
 
@@ -38,6 +42,7 @@ class TestWithRunContext:
 
     def test_with_run_context_preserves_docstring(self):
         """Test that with_run_context preserves the original function's docstring."""
+
         def documented_func(x: int) -> int:
             """This is a test function."""
             return x * 2
@@ -47,6 +52,7 @@ class TestWithRunContext:
 
     def test_with_run_context_preserves_name(self):
         """Test that with_run_context preserves the original function's name."""
+
         def named_func(x: int) -> int:
             return x
 
@@ -55,6 +61,7 @@ class TestWithRunContext:
 
     def test_with_run_context_annotations(self):
         """Test that with_run_context adds proper annotations."""
+
         def annotated_func(a: int, b: str) -> bool:
             return True
 
@@ -62,18 +69,19 @@ class TestWithRunContext:
 
         # Check that RunContext is added as first parameter
         annotations = wrapped.__annotations__
-        assert 'ctx' in annotations
-        assert annotations['ctx'] == RunContext
+        assert "ctx" in annotations
+        assert annotations["ctx"] == RunContext
 
         # Original annotations should be preserved
-        assert 'a' in annotations
-        assert 'b' in annotations
-        assert annotations['a'] == int
-        assert annotations['b'] == str
-        assert annotations['return'] == bool
+        assert "a" in annotations
+        assert "b" in annotations
+        assert annotations["a"] is int
+        assert annotations["b"] is str
+        assert annotations["return"] is bool
 
     def test_with_run_context_signature(self):
         """Test that with_run_context updates the function signature."""
+
         def original_func(x: int, y: str) -> int:
             return len(y) + x
 
@@ -83,17 +91,18 @@ class TestWithRunContext:
         sig = inspect.signature(wrapped)
         params = list(sig.parameters.keys())
 
-        assert params[0] == 'ctx'
-        assert params[1] == 'x'
-        assert params[2] == 'y'
+        assert params[0] == "ctx"
+        assert params[1] == "x"
+        assert params[2] == "y"
 
         # Check parameter annotations
-        assert sig.parameters['ctx'].annotation == RunContext
-        assert sig.parameters['x'].annotation == int
-        assert sig.parameters['y'].annotation == str
+        assert sig.parameters["ctx"].annotation is RunContext
+        assert sig.parameters["x"].annotation is int
+        assert sig.parameters["y"].annotation is str
 
     def test_with_run_context_kwargs(self):
         """Test with_run_context with keyword arguments."""
+
         def func_with_kwargs(a: int, b: int = 10) -> int:
             return a + b
 
@@ -107,6 +116,7 @@ class TestWithRunContext:
         assert wrapped(mock_ctx, 5, b=20) == 25
 
 
+@pytest.mark.unit
 class TestRegisterToolWithContext:
     """Test cases for register_tool_with_context function."""
 
@@ -141,14 +151,16 @@ class TestRegisterToolWithContext:
         # Should have called agent.tool with name parameter
         mock_agent.tool.assert_called_once()
         call_kwargs = mock_agent.tool.call_args[1]
-        assert call_kwargs.get('name') == "custom_name"
+        assert call_kwargs.get("name") == "custom_name"
 
 
+@pytest.mark.unit
 class TestCreateToolWrapper:
     """Test cases for create_tool_wrapper function."""
 
     def test_create_tool_wrapper(self):
         """Test create_tool_wrapper function."""
+
         def original_func(a: int, b: int) -> int:
             return a + b
 
@@ -160,26 +172,29 @@ class TestCreateToolWrapper:
         assert result == 8
 
         # Should have proper annotations
-        assert 'ctx' in wrapped.__annotations__
-        assert wrapped.__annotations__['ctx'] == RunContext
+        assert "ctx" in wrapped.__annotations__
+        assert wrapped.__annotations__["ctx"] == RunContext
 
 
+@pytest.mark.unit
 class TestMakeAgentTools:
     """Test cases for make_agent_tools function."""
 
     def test_make_agent_tools_single_function(self):
         """Test make_agent_tools with a single function."""
+
         def test_func(x: int) -> int:
             return x
 
         tools = make_agent_tools(test_func)
 
         assert isinstance(tools, dict)
-        assert 'test_func' in tools
-        assert callable(tools['test_func'])
+        assert "test_func" in tools
+        assert callable(tools["test_func"])
 
     def test_make_agent_tools_multiple_functions(self):
         """Test make_agent_tools with multiple functions."""
+
         def func_one(x: int) -> int:
             return x + 1
 
@@ -189,14 +204,14 @@ class TestMakeAgentTools:
         tools = make_agent_tools(func_one, func_two)
 
         assert isinstance(tools, dict)
-        assert 'func_one' in tools
-        assert 'func_two' in tools
+        assert "func_one" in tools
+        assert "func_two" in tools
         assert len(tools) == 2
 
         # Test that wrapped functions work
         mock_ctx = MagicMock(spec=RunContext)
-        assert tools['func_one'](mock_ctx, 5) == 6
-        assert tools['func_two'](mock_ctx, 5) == 10
+        assert tools["func_one"](mock_ctx, 5) == 6
+        assert tools["func_two"](mock_ctx, 5) == 10
 
     def test_make_agent_tools_empty(self):
         """Test make_agent_tools with no functions."""
@@ -206,6 +221,7 @@ class TestMakeAgentTools:
         assert len(tools) == 0
 
 
+@pytest.mark.unit
 class TestRegisterMultipleTools:
     """Test cases for register_multiple_tools function."""
 
@@ -219,12 +235,11 @@ class TestRegisterMultipleTools:
         def func_two(x: int) -> int:
             return x
 
-        tools = {
-            'tool_one': func_one,
-            'tool_two': func_two
-        }
+        tools = {"tool_one": func_one, "tool_two": func_two}
 
-        with patch('tools.agent_helpers.register_tool_with_context') as mock_register:
+        with patch(
+            "src.tools.agent_helpers.register_tool_with_context"
+        ) as mock_register:
             register_multiple_tools(mock_agent, tools)
 
             # Should have called register_tool_with_context for each tool
@@ -236,12 +251,12 @@ class TestRegisterMultipleTools:
             # First call
             assert calls[0][0][0] is mock_agent
             assert calls[0][0][1] is func_one
-            assert calls[0][0][2] == 'tool_one'
+            assert calls[0][0][2] == "tool_one"
 
             # Second call
             assert calls[1][0][0] is mock_agent
             assert calls[1][0][1] is func_two
-            assert calls[1][0][2] == 'tool_two'
+            assert calls[1][0][2] == "tool_two"
 
     def test_register_multiple_tools_with_prefix(self):
         """Test register_multiple_tools with prefix."""
@@ -250,21 +265,25 @@ class TestRegisterMultipleTools:
         def test_func(x: int) -> int:
             return x
 
-        tools = {'tool': test_func}
+        tools = {"tool": test_func}
 
-        with patch('tools.agent_helpers.register_tool_with_context') as mock_register:
+        with patch(
+            "src.tools.agent_helpers.register_tool_with_context"
+        ) as mock_register:
             register_multiple_tools(mock_agent, tools, prefix="test_")
 
             # Should have called with prefixed name
             mock_register.assert_called_once()
             call_args = mock_register.call_args[0]
-            assert call_args[2] == 'test_tool'  # prefixed name
+            assert call_args[2] == "test_tool"  # prefixed name
 
     def test_register_multiple_tools_empty(self):
         """Test register_multiple_tools with empty tools dict."""
         mock_agent = MagicMock()
 
-        with patch('tools.agent_helpers.register_tool_with_context') as mock_register:
+        with patch(
+            "src.tools.agent_helpers.register_tool_with_context"
+        ) as mock_register:
             register_multiple_tools(mock_agent, {})
 
             # Should not have called register_tool_with_context
@@ -272,6 +291,7 @@ class TestRegisterMultipleTools:
 
     def test_integration_workflow(self):
         """Test a complete workflow using the helper functions."""
+
         # Create some test functions
         def add_func(a: int, b: int) -> int:
             return a + b
@@ -283,20 +303,23 @@ class TestRegisterMultipleTools:
         tools = make_agent_tools(add_func, multiply_func)
 
         # Verify tools were created correctly
-        assert 'add_func' in tools
-        assert 'multiply_func' in tools
+        assert "add_func" in tools
+        assert "multiply_func" in tools
 
         # Mock agent
         mock_agent = MagicMock()
 
         # Register tools
-        with patch('tools.agent_helpers.register_tool_with_context') as mock_register:
+        with patch(
+            "src.tools.agent_helpers.register_tool_with_context"
+        ) as mock_register:
             register_multiple_tools(mock_agent, tools)
 
             # Should have registered both tools
             assert mock_register.call_count == 2
 
 
+@pytest.mark.unit
 class TestDataClasses:
     """Test cases for data classes."""
 
@@ -306,7 +329,7 @@ class TestDataClasses:
             tool_name="test_tool",
             arguments={"x": 1},
             result="test_result",
-            call_id="123"
+            call_id="123",
         )
 
         assert info.tool_name == "test_tool"
@@ -323,7 +346,7 @@ class TestDataClasses:
             total_messages=3,
             has_tools_executed=True,
             execution_summary="Test summary",
-            confidence_indicators={"test": True}
+            confidence_indicators={"test": True},
         )
 
         assert len(diagnostics.tool_calls) == 1
@@ -333,6 +356,7 @@ class TestDataClasses:
         assert diagnostics.confidence_indicators["test"] == True
 
 
+@pytest.mark.unit
 class TestMessageParsing:
     """Test cases for message parsing functions."""
 
@@ -367,10 +391,10 @@ class TestMessageParsing:
     def test_extract_tool_calls_with_tool_role(self):
         """Test extracting tool calls from tool role messages."""
         mock_message = MagicMock()
-        mock_message.role = 'tool'
-        mock_message.name = 'test_tool'
-        mock_message.content = 'tool result'
-        mock_message.tool_call_id = 'call_123'
+        mock_message.role = "tool"
+        mock_message.name = "test_tool"
+        mock_message.content = "tool result"
+        mock_message.tool_call_id = "call_123"
         # Ensure this doesn't have parts to avoid double detection
         del mock_message.parts
         del mock_message.function_call
@@ -378,27 +402,28 @@ class TestMessageParsing:
         tool_calls = extract_tool_calls_from_messages([mock_message])
 
         assert len(tool_calls) == 1
-        assert tool_calls[0].tool_name == 'test_tool'
-        assert tool_calls[0].result == 'tool result'
-        assert tool_calls[0].call_id == 'call_123'
+        assert tool_calls[0].tool_name == "test_tool"
+        assert tool_calls[0].result == "tool result"
+        assert tool_calls[0].call_id == "call_123"
 
     def test_extract_tool_calls_with_dict_messages(self):
         """Test extracting tool calls from dictionary messages."""
         message = {
-            'role': 'tool',
-            'name': 'test_tool',
-            'content': 'tool result',
-            'tool_call_id': 'call_123'
+            "role": "tool",
+            "name": "test_tool",
+            "content": "tool result",
+            "tool_call_id": "call_123",
         }
 
         tool_calls = extract_tool_calls_from_messages([message])
 
         assert len(tool_calls) == 1
-        assert tool_calls[0].tool_name == 'test_tool'
-        assert tool_calls[0].result == 'tool result'
-        assert tool_calls[0].call_id == 'call_123'
+        assert tool_calls[0].tool_name == "test_tool"
+        assert tool_calls[0].result == "tool result"
+        assert tool_calls[0].call_id == "call_123"
 
 
+@pytest.mark.unit
 class TestAnalysis:
     """Test cases for analysis functions."""
 
@@ -431,6 +456,7 @@ class TestAnalysis:
         assert "Error analyzing execution" in diagnostics.execution_summary
 
 
+@pytest.mark.unit
 class TestHelperFunctions:
     """Test cases for helper functions."""
 
@@ -446,7 +472,7 @@ class TestHelperFunctions:
             arguments={"x": 1, "y": 2},
             result="42",
             call_id="call_123",
-            has_matching_return=True
+            has_matching_return=True,
         )
 
         result = format_tool_execution_details([tool_call])
@@ -459,9 +485,7 @@ class TestHelperFunctions:
     def test_enhance_agent_response(self):
         """Test enhancing agent response with tool details."""
         tool_call = ToolCallInfo(
-            tool_name="test_tool",
-            result="42",
-            has_matching_return=True
+            tool_name="test_tool", result="42", has_matching_return=True
         )
 
         response = "The answer is 42"

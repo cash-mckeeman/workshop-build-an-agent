@@ -14,13 +14,8 @@ from pathlib import Path
 src_path = Path(__file__).parent.parent
 sys.path.insert(0, str(src_path))
 
-from factory import (
-    AgentFactory,
-    get_recommended_setup,
-    create_tutorial_agent
-)
-from models import check_all_providers
-from models.health import print_health_status
+from src.factory import create_tutorial_agent, get_recommended_setup
+from src.models.health import print_health_status
 
 
 def cmd_status():
@@ -31,7 +26,7 @@ def cmd_status():
     setup = get_recommended_setup()
     print(f"Setup Status: {setup['status']}")
 
-    if setup['status'] == 'ready':
+    if setup["status"] == "ready":
         print(f"✅ Recommended Provider: {setup['recommended_provider']}")
         print(f"✅ Recommended Model: {setup['recommended_model']}")
     else:
@@ -45,7 +40,7 @@ def cmd_demo(agent_type="math", question=None):
     """Run a demo with the specified agent type."""
     setup = get_recommended_setup()
 
-    if setup['status'] != 'ready':
+    if setup["status"] != "ready":
         print("❌ No providers available. Please configure API keys or start Ollama.")
         return
 
@@ -58,7 +53,7 @@ def cmd_demo(agent_type="math", question=None):
     default_questions = {
         "basic": "Hello! Can you tell me what you are?",
         "math": "What is 3 plus 12?",
-        "tools": "What time is it and what's 5 multiplied by 7?"
+        "tools": "What time is it and what's 5 multiplied by 7?",
     }
 
     question = question or default_questions.get(agent_type, "Hello!")
@@ -81,12 +76,14 @@ def cmd_interactive(agent_type="tools"):
     """Start an interactive session with the specified agent."""
     setup = get_recommended_setup()
 
-    if setup['status'] != 'ready':
+    if setup["status"] != "ready":
         print("❌ No providers available. Please configure API keys or start Ollama.")
         return
 
     print(f"🎮 Interactive {agent_type} Agent Session")
-    print(f"Provider: {setup['recommended_provider']} | Model: {setup['recommended_model']}")
+    print(
+        f"Provider: {setup['recommended_provider']} | Model: {setup['recommended_model']}"
+    )
     print("Type 'quit', 'exit', or 'bye' to exit\n")
 
     try:
@@ -97,7 +94,7 @@ def cmd_interactive(agent_type="tools"):
             try:
                 user_input = input("You: ").strip()
 
-                if user_input.lower() in ['quit', 'exit', 'bye']:
+                if user_input.lower() in ["quit", "exit", "bye"]:
                     print("👋 Goodbye!")
                     break
 
@@ -130,7 +127,7 @@ def cmd_tutorial():
 
     setup = get_recommended_setup()
 
-    if setup['status'] != 'ready':
+    if setup["status"] != "ready":
         print("❌ No providers available. Please configure API keys or start Ollama.")
         print("\nSetup Instructions:")
         print("- Set OPENAI_API_KEY environment variable, or")
@@ -176,42 +173,55 @@ def cmd_tutorial():
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(description="Agent Intro Tutorial CLI")
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Status command
-    subparsers.add_parser('status', help='Show system status and provider health')
+    subparsers.add_parser("status", help="Show system status and provider health")
 
     # Demo command
-    demo_parser = subparsers.add_parser('demo', help='Run a quick demo')
-    demo_parser.add_argument('--type', choices=['basic', 'math', 'tools'],
-                           default='math', help='Agent type to demo')
-    demo_parser.add_argument('--question', help='Custom question to ask')
+    demo_parser = subparsers.add_parser("demo", help="Run a quick demo")
+    demo_parser.add_argument(
+        "--type",
+        choices=["basic", "math", "tools"],
+        default="math",
+        help="Agent type to demo",
+    )
+    demo_parser.add_argument("--question", help="Custom question to ask")
 
     # Interactive command
-    interactive_parser = subparsers.add_parser('interactive', help='Start interactive session')
-    interactive_parser.add_argument('--type', choices=['basic', 'math', 'tools'],
-                                   default='tools', help='Agent type for interactive session')
+    interactive_parser = subparsers.add_parser(
+        "interactive", help="Start interactive session"
+    )
+    interactive_parser.add_argument(
+        "--type",
+        choices=["basic", "math", "tools"],
+        default="tools",
+        help="Agent type for interactive session",
+    )
 
     # Tutorial command
-    subparsers.add_parser('tutorial', help='Show the complete tutorial progression')
+    subparsers.add_parser("tutorial", help="Show the complete tutorial progression")
 
     # App command
-    subparsers.add_parser('app', help='Launch the Streamlit app')
+    subparsers.add_parser("app", help="Launch the Streamlit app")
 
     args = parser.parse_args()
 
-    if args.command == 'status':
+    if args.command == "status":
         cmd_status()
-    elif args.command == 'demo':
+    elif args.command == "demo":
         cmd_demo(args.type, args.question)
-    elif args.command == 'interactive':
+    elif args.command == "interactive":
         cmd_interactive(args.type)
-    elif args.command == 'tutorial':
+    elif args.command == "tutorial":
         cmd_tutorial()
-    elif args.command == 'app':
+    elif args.command == "app":
         import subprocess
+
         print("🚀 Launching Streamlit app...")
-        subprocess.run([sys.executable, '-m', 'streamlit', 'run', 'src/agent_intro/app.py'])
+        subprocess.run(
+            [sys.executable, "-m", "streamlit", "run", "src/agent_intro/app.py"]
+        )
     else:
         parser.print_help()
 

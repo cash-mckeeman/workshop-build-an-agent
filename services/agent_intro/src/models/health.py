@@ -8,14 +8,14 @@ ensuring they are properly configured and accessible before use.
 import asyncio
 import os
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
 from enum import Enum
 
-from models.providers import ModelProvider, PROVIDERS, get_available_providers
+from src.models.providers import PROVIDERS, ModelProvider
 
 
 class HealthStatus(str, Enum):
     """Health status for providers."""
+
     HEALTHY = "healthy"
     UNHEALTHY = "unhealthy"
     UNKNOWN = "unknown"
@@ -24,12 +24,13 @@ class HealthStatus(str, Enum):
 @dataclass
 class HealthCheckResult:
     """Result of a health check for a provider."""
+
     provider_name: str
     status: HealthStatus
     message: str
-    response_time_ms: Optional[int] = None
-    model_tested: Optional[str] = None
-    error: Optional[str] = None
+    response_time_ms: int | None = None
+    model_tested: str | None = None
+    error: str | None = None
 
 
 class HealthChecker:
@@ -41,7 +42,7 @@ class HealthChecker:
     async def check_provider_health(
         self,
         provider: ModelProvider,
-        test_prompt: str = "Hello, this is a test. Please respond with 'OK'."
+        test_prompt: str = "Hello, this is a test. Please respond with 'OK'.",
     ) -> HealthCheckResult:
         """Check the health of a specific provider.
 
@@ -61,7 +62,7 @@ class HealthChecker:
                     provider_name=provider.name,
                     status=HealthStatus.UNHEALTHY,
                     message=f"Provider not available: {self._get_availability_reason(provider)}",
-                    error="Configuration issue"
+                    error="Configuration issue",
                 )
 
             # For now, we'll do basic checks rather than actual model calls
@@ -75,7 +76,7 @@ class HealthChecker:
                         provider_name=provider.name,
                         status=HealthStatus.UNHEALTHY,
                         message=f"Missing API key: {provider.env_var}",
-                        error="Authentication issue"
+                        error="Authentication issue",
                     )
 
                 # Basic API key validation
@@ -84,7 +85,7 @@ class HealthChecker:
                         provider_name=provider.name,
                         status=HealthStatus.UNHEALTHY,
                         message="API key appears to be invalid (too short)",
-                        error="Authentication issue"
+                        error="Authentication issue",
                     )
 
             # Check Ollama connectivity for local providers
@@ -102,7 +103,7 @@ class HealthChecker:
                 status=HealthStatus.HEALTHY,
                 message="Provider configuration appears valid",
                 response_time_ms=response_time_ms,
-                model_tested=provider.default_model
+                model_tested=provider.default_model,
             )
 
         except Exception as e:
@@ -114,7 +115,7 @@ class HealthChecker:
                 status=HealthStatus.UNHEALTHY,
                 message=f"Health check failed: {str(e)}",
                 response_time_ms=response_time_ms,
-                error=str(e)
+                error=str(e),
             )
 
     async def _check_ollama_health(self, provider: ModelProvider) -> HealthCheckResult:
@@ -138,21 +139,21 @@ class HealthChecker:
                             provider_name=provider.name,
                             status=HealthStatus.HEALTHY,
                             message=f"Ollama server healthy, model '{provider.default_model}' available",
-                            model_tested=provider.default_model
+                            model_tested=provider.default_model,
                         )
                     else:
                         return HealthCheckResult(
                             provider_name=provider.name,
                             status=HealthStatus.UNHEALTHY,
                             message=f"Model '{provider.default_model}' not found. Available: {models}",
-                            error="Model not available"
+                            error="Model not available",
                         )
                 else:
                     return HealthCheckResult(
                         provider_name=provider.name,
                         status=HealthStatus.UNHEALTHY,
                         message=f"Ollama server returned status {response.status_code}",
-                        error="Server error"
+                        error="Server error",
                     )
 
         except ImportError:
@@ -160,14 +161,14 @@ class HealthChecker:
                 provider_name=provider.name,
                 status=HealthStatus.UNHEALTHY,
                 message="httpx not available for Ollama health check",
-                error="Missing dependency"
+                error="Missing dependency",
             )
         except Exception as e:
             return HealthCheckResult(
                 provider_name=provider.name,
                 status=HealthStatus.UNHEALTHY,
                 message=f"Cannot connect to Ollama server: {str(e)}",
-                error=str(e)
+                error=str(e),
             )
 
     def _get_availability_reason(self, provider: ModelProvider) -> str:
@@ -178,7 +179,7 @@ class HealthChecker:
 
         return "Unknown configuration issue"
 
-    async def check_all_providers(self) -> Dict[str, HealthCheckResult]:
+    async def check_all_providers(self) -> dict[str, HealthCheckResult]:
         """Check health of all configured providers.
 
         Returns:
@@ -202,7 +203,7 @@ def check_provider_health(provider_name: str) -> HealthCheckResult:
             provider_name=provider_name,
             status=HealthStatus.UNHEALTHY,
             message=f"Provider '{provider_name}' not found",
-            error="Provider not found"
+            error="Provider not found",
         )
 
     checker = HealthChecker()
@@ -217,7 +218,7 @@ def check_provider_health(provider_name: str) -> HealthCheckResult:
     return loop.run_until_complete(checker.check_provider_health(provider))
 
 
-def check_all_providers() -> Dict[str, HealthCheckResult]:
+def check_all_providers() -> dict[str, HealthCheckResult]:
     """Synchronous version of checking all providers."""
     checker = HealthChecker()
 
@@ -230,16 +231,19 @@ def check_all_providers() -> Dict[str, HealthCheckResult]:
     return loop.run_until_complete(checker.check_all_providers())
 
 
-def get_healthy_providers() -> List[str]:
+def get_healthy_providers() -> list[str]:
     """Get list of provider names that are currently healthy."""
     results = check_all_providers()
     return [
-        name for name, result in results.items()
+        name
+        for name, result in results.items()
         if result.status == HealthStatus.HEALTHY
     ]
 
 
-def get_best_available_provider(preferred_providers: Optional[List[str]] = None) -> Optional[str]:
+def get_best_available_provider(
+    preferred_providers: list[str] | None = None,
+) -> str | None:
     """Get the best available provider from a preference list.
 
     Args:

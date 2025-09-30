@@ -3,12 +3,13 @@ Welcome page for the Agent Introduction Tutorial.
 """
 
 import streamlit as st
-from streamlit_app.components.concept_explanation import (
+
+from src.streamlit_app.components.concept_explanation import (
     show_agent_component_overview,
     show_agent_vs_chatbot,
-    show_tutorial_roadmap
+    show_tutorial_roadmap,
 )
-from streamlit_app.utils.session_state import mark_progress
+from src.streamlit_app.utils.session_state import mark_progress
 
 
 def show_welcome_page():
@@ -84,7 +85,9 @@ def show_welcome_page():
     with col2:
         if st.button("✅ I'm Ready to Start!", key="ready_to_start", type="primary"):
             mark_progress("welcome", True)
-            st.success("Great! Head to the **Model Setup** page to configure your AI provider.")
+            st.success(
+                "Great! Head to the **Model Setup** page to configure your AI provider."
+            )
             st.info("💡 Use the sidebar to navigate between tutorial pages.")
 
     # Tips for success
@@ -96,7 +99,7 @@ def show_welcome_page():
         "**Experiment freely** - try modifying the examples",
         "**Ask questions** - use the chat interfaces to test your understanding",
         "**Take your time** - understanding beats speed",
-        "**Have fun** - building agents is exciting!"
+        "**Have fun** - building agents is exciting!",
     ]
 
     for tip in tips:

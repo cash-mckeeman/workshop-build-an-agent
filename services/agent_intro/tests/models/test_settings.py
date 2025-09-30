@@ -1,22 +1,22 @@
 """Tests for models.settings module."""
 
-import pytest
 import os
-import tempfile
-import yaml
 from pathlib import Path
-from unittest.mock import patch, mock_open
-from models.settings import (
+from unittest.mock import mock_open, patch
+
+import pytest
+
+from src.models.settings import (
     ModelSettings,
-    load_model_settings,
+    create_default_config,
     get_instructions_for_mode,
     get_provider_settings,
-    create_default_config,
+    load_model_settings,
     load_yaml_config,
-    get_config_path
 )
 
 
+@pytest.mark.unit
 class TestModelSettings:
     """Test cases for ModelSettings dataclass."""
 
@@ -46,7 +46,7 @@ class TestModelSettings:
             max_retries=5,
             timeout_seconds=60,
             provider_settings=custom_provider_settings,
-            custom_instructions=custom_instructions
+            custom_instructions=custom_instructions,
         )
 
         assert settings.default_provider == "anthropic"
@@ -59,6 +59,7 @@ class TestModelSettings:
         assert settings.custom_instructions == custom_instructions
 
 
+@pytest.mark.unit
 class TestConfigFunctions:
     """Test cases for configuration functions."""
 
@@ -83,7 +84,7 @@ class TestConfigFunctions:
         settings = ModelSettings()
         settings.provider_settings = {
             "openai": {"temperature": 0.7, "max_tokens": 1000},
-            "anthropic": {"temperature": 0.5}
+            "anthropic": {"temperature": 0.5},
         }
 
         openai_settings = get_provider_settings("openai", settings)
@@ -119,55 +120,59 @@ class TestConfigFunctions:
         assert "beginner" in instructions
         assert "math_tutor" in instructions
 
-    @patch('builtins.open', mock_open(read_data='{"test": "data"}'))
-    @patch('yaml.safe_load')
+    @patch("builtins.open", mock_open(read_data='{"test": "data"}'))
+    @patch("yaml.safe_load")
     def test_load_yaml_config_success(self, mock_yaml_load):
         """Test successful YAML config loading."""
         mock_yaml_load.return_value = {"test": "data"}
 
-        with patch('models.settings.get_config_path') as mock_path:
+        with patch("src.models.settings.get_config_path") as mock_path:
             mock_path.return_value = Path("/fake/path")
-            with patch.object(Path, 'exists', return_value=True):
+            with patch.object(Path, "exists", return_value=True):
                 result = load_yaml_config("test.yaml")
 
         assert result == {"test": "data"}
 
-    @patch('builtins.open', side_effect=Exception("File error"))
+    @patch("builtins.open", side_effect=Exception("File error"))
     def test_load_yaml_config_error(self, mock_open):
         """Test YAML config loading with file error."""
-        with patch('models.settings.get_config_path') as mock_path:
+        with patch("src.models.settings.get_config_path") as mock_path:
             mock_path.return_value = Path("/fake/path")
-            with patch.object(Path, 'exists', return_value=True):
+            with patch.object(Path, "exists", return_value=True):
                 result = load_yaml_config("test.yaml")
 
         assert result == {}
 
     def test_load_yaml_config_missing_file(self):
         """Test YAML config loading with missing file."""
-        with patch('models.settings.get_config_path') as mock_path:
+        with patch("src.models.settings.get_config_path") as mock_path:
             mock_path.return_value = Path("/fake/path")
-            with patch.object(Path, 'exists', return_value=False):
+            with patch.object(Path, "exists", return_value=False):
                 result = load_yaml_config("missing.yaml")
 
         assert result == {}
 
 
+@pytest.mark.unit
 class TestEnvironmentVariables:
     """Test cases for environment variable handling."""
 
-    @patch.dict(os.environ, {
-        'AGENT_DEFAULT_PROVIDER': 'anthropic',
-        'AGENT_DEFAULT_MODEL': 'claude-3-haiku',
-        'AGENT_TUTORIAL_MODE': 'advanced'
-    })
-    @patch('models.settings.load_yaml_config')
+    @patch.dict(
+        os.environ,
+        {
+            "AGENT_DEFAULT_PROVIDER": "anthropic",
+            "AGENT_DEFAULT_MODEL": "claude-3-haiku",
+            "AGENT_TUTORIAL_MODE": "advanced",
+        },
+    )
+    @patch("src.models.settings.load_yaml_config")
     def test_load_model_settings_with_env_vars(self, mock_load_yaml):
         """Test loading settings with environment variable overrides."""
         mock_load_yaml.return_value = {
             "tutorial": {
                 "default_provider": "openai",
                 "default_model": "gpt-4o-mini",
-                "mode": "beginner"
+                "mode": "beginner",
             }
         }
 
@@ -178,7 +183,7 @@ class TestEnvironmentVariables:
         assert settings.default_model == "claude-3-haiku"
         assert settings.tutorial_mode == "advanced"
 
-    @patch('models.settings.load_yaml_config')
+    @patch("src.models.settings.load_yaml_config")
     def test_load_model_settings_without_env_vars(self, mock_load_yaml):
         """Test loading settings without environment variables."""
         mock_load_yaml.return_value = {
@@ -188,14 +193,10 @@ class TestEnvironmentVariables:
                 "mode": "intermediate",
                 "enable_streaming": True,
                 "max_retries": 5,
-                "timeout_seconds": 45
+                "timeout_seconds": 45,
             },
-            "providers": {
-                "groq": {"settings": {"temperature": 0.9}}
-            },
-            "instructions": {
-                "custom": "Custom instruction"
-            }
+            "providers": {"groq": {"settings": {"temperature": 0.9}}},
+            "instructions": {"custom": "Custom instruction"},
         }
 
         settings = load_model_settings()
@@ -209,7 +210,7 @@ class TestEnvironmentVariables:
         assert "groq" in settings.provider_settings
         assert settings.custom_instructions["custom"] == "Custom instruction"
 
-    @patch('models.settings.load_yaml_config')
+    @patch("src.models.settings.load_yaml_config")
     def test_load_model_settings_empty_config(self, mock_load_yaml):
         """Test loading settings with empty config."""
         mock_load_yaml.return_value = {}

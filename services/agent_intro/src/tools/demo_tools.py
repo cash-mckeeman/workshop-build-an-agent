@@ -66,7 +66,7 @@ def reverse_string(text: Annotated[str, "Text to reverse"]) -> str:
 
 
 def generate_password(
-    length: Annotated[int, "Length of password (between 8 and 50)"] = 12
+    length: Annotated[int, "Length of password (between 8 and 50)"] = 12,
 ) -> str:
     """Generate a random password.
 
@@ -83,8 +83,9 @@ def generate_password(
         raise ValueError("Password length must be between 8 and 50 characters")
 
     import string
+
     characters = string.ascii_letters + string.digits + "!@#$%^&*"
-    return ''.join(random.choice(characters) for _ in range(length))
+    return "".join(random.choice(characters) for _ in range(length))
 
 
 def fibonacci(n: Annotated[int, "Position in Fibonacci sequence (0-50)"]) -> int:

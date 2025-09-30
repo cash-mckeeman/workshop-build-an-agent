@@ -5,30 +5,36 @@ This refactored application follows the planned architecture with separate
 pages, components, and utilities for better organization and maintainability.
 """
 
-import streamlit as st
 import sys
 from pathlib import Path
+
+import streamlit as st
 
 # Add the src directory to Python path
 src_path = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(src_path))
 
-from factory import get_recommended_setup, create_tutorial_agent
-from models import get_available_providers, check_all_providers
-from models.health import print_health_status
+from src.factory import get_recommended_setup
+from src.models import check_all_providers
+from src.streamlit_app.pages.basic_agent import show_basic_agent_page
+from src.streamlit_app.pages.complete_agent import show_complete_agent_page
+from src.streamlit_app.pages.memory import show_memory_page
+from src.streamlit_app.pages.model_setup import show_model_setup_page
+from src.streamlit_app.pages.routing import show_routing_page
+from src.streamlit_app.pages.tools import show_tools_page
 
 # Import page modules
-from streamlit_app.pages.welcome import show_welcome_page
-from streamlit_app.pages.model_setup import show_model_setup_page
-from streamlit_app.pages.tools import show_tools_page
-from streamlit_app.pages.basic_agent import show_basic_agent_page
-from streamlit_app.pages.memory import show_memory_page
-from streamlit_app.pages.routing import show_routing_page
-from streamlit_app.pages.complete_agent import show_complete_agent_page
+from src.streamlit_app.pages.welcome import show_welcome_page
+from src.streamlit_app.utils.formatters import (
+    format_provider_status,
+    format_tutorial_progress,
+)
 
 # Import utilities
-from streamlit_app.utils.session_state import initialize_session_state, get_overall_progress
-from streamlit_app.utils.formatters import format_tutorial_progress, format_provider_status
+from src.streamlit_app.utils.session_state import (
+    get_overall_progress,
+    initialize_session_state,
+)
 
 
 def main():
@@ -37,7 +43,7 @@ def main():
         page_title="Agent Introduction Tutorial",
         page_icon="🤖",
         layout="wide",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state="expanded",
     )
 
     # Initialize session state
@@ -107,7 +113,9 @@ def render_provider_status():
 
             st.subheader("Provider Status")
             for name, result in health_results.items():
-                status_msg = format_provider_status(name, result.status.value, result.message)
+                status_msg = format_provider_status(
+                    name, result.status.value, result.message
+                )
                 if result.status.value == "healthy":
                     st.success(status_msg)
                 else:
@@ -130,7 +138,7 @@ def render_tutorial_progress():
         ("🛠️ Tools", progress.get("tools", False)),
         ("💾 Memory", progress.get("memory", False)),
         ("🚦 Routing", progress.get("routing", False)),
-        ("🎯 Complete Agent", progress.get("complete_agent", False))
+        ("🎯 Complete Agent", progress.get("complete_agent", False)),
     ]
 
     for page_name, completed in page_status:
@@ -152,7 +160,7 @@ def render_page_navigation():
         ("Tools", "🛠️"),
         ("Memory", "💾"),
         ("Routing", "🚦"),
-        ("Complete Agent", "🎯")
+        ("Complete Agent", "🎯"),
     ]
 
     # Use selectbox for page navigation
@@ -160,7 +168,7 @@ def render_page_navigation():
         "Choose a page:",
         [f"{icon} {name}" for name, icon in page_options],
         index=0,
-        key="page_selector"
+        key="page_selector",
     )
 
     # Store selected page in session state
@@ -190,10 +198,6 @@ def render_main_content():
     else:
         # Fallback to welcome page
         show_welcome_page()
-
-
-
-
 
 
 if __name__ == "__main__":

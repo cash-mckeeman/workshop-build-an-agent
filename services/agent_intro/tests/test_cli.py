@@ -2,32 +2,26 @@
 Tests for the CLI module.
 """
 
-import pytest
-import argparse
 import sys
-from unittest.mock import Mock, patch, call
-from io import StringIO
+from unittest.mock import Mock, call, patch
 
-from cli import (
-    cmd_status,
-    cmd_demo,
-    cmd_interactive,
-    cmd_tutorial,
-    main
-)
+import pytest
+
+from cli import cmd_demo, cmd_interactive, cmd_status, cmd_tutorial, main
 
 
+@pytest.mark.unit
 class TestCmdStatus:
     """Test cmd_status function."""
 
-    @patch('cli.print_health_status')
-    @patch('cli.get_recommended_setup')
+    @patch("cli.print_health_status")
+    @patch("cli.get_recommended_setup")
     def test_cmd_status_ready(self, mock_get_setup, mock_print_health, capsys):
         """Test status command when system is ready."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         cmd_status()
@@ -39,13 +33,11 @@ class TestCmdStatus:
         assert "✅ Recommended Model: gpt-4" in captured.out
         mock_print_health.assert_called_once()
 
-    @patch('cli.print_health_status')
-    @patch('cli.get_recommended_setup')
+    @patch("cli.print_health_status")
+    @patch("cli.get_recommended_setup")
     def test_cmd_status_not_ready(self, mock_get_setup, mock_print_health, capsys):
         """Test status command when system is not ready."""
-        mock_get_setup.return_value = {
-            'status': 'no_providers'
-        }
+        mock_get_setup.return_value = {"status": "no_providers"}
 
         cmd_status()
 
@@ -56,17 +48,18 @@ class TestCmdStatus:
         mock_print_health.assert_called_once()
 
 
+@pytest.mark.unit
 class TestCmdDemo:
     """Test cmd_demo function."""
 
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
     def test_cmd_demo_success(self, mock_get_setup, mock_create_agent, capsys):
         """Test successful demo execution."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_agent = Mock()
@@ -87,12 +80,10 @@ class TestCmdDemo:
         mock_create_agent.assert_called_once_with("math")
         mock_agent.run_sync.assert_called_once_with("What is 3 plus 12?")
 
-    @patch('cli.get_recommended_setup')
+    @patch("cli.get_recommended_setup")
     def test_cmd_demo_not_ready(self, mock_get_setup, capsys):
         """Test demo when system is not ready."""
-        mock_get_setup.return_value = {
-            'status': 'no_providers'
-        }
+        mock_get_setup.return_value = {"status": "no_providers"}
 
         cmd_demo("math")
 
@@ -101,22 +92,24 @@ class TestCmdDemo:
 
     def test_cmd_demo_default_questions(self):
         """Test that default questions are used correctly."""
-        with patch('cli.get_recommended_setup') as mock_get_setup:
-            mock_get_setup.return_value = {'status': 'no_providers'}
+        with patch("cli.get_recommended_setup") as mock_get_setup:
+            mock_get_setup.return_value = {"status": "no_providers"}
 
             # Test that we don't call create_agent when not ready
-            with patch('cli.create_tutorial_agent') as mock_create_agent:
+            with patch("cli.create_tutorial_agent") as mock_create_agent:
                 cmd_demo("basic")
                 mock_create_agent.assert_not_called()
 
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
-    def test_cmd_demo_exception_handling(self, mock_get_setup, mock_create_agent, capsys):
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
+    def test_cmd_demo_exception_handling(
+        self, mock_get_setup, mock_create_agent, capsys
+    ):
         """Test demo exception handling."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_create_agent.side_effect = Exception("Test error")
@@ -127,30 +120,31 @@ class TestCmdDemo:
         assert "❌ Error: Test error" in captured.out
 
 
+@pytest.mark.unit
 class TestCmdInteractive:
     """Test cmd_interactive function."""
 
-    @patch('cli.get_recommended_setup')
+    @patch("cli.get_recommended_setup")
     def test_cmd_interactive_not_ready(self, mock_get_setup, capsys):
         """Test interactive mode when system is not ready."""
-        mock_get_setup.return_value = {
-            'status': 'no_providers'
-        }
+        mock_get_setup.return_value = {"status": "no_providers"}
 
         cmd_interactive("tools")
 
         captured = capsys.readouterr()
         assert "❌ No providers available" in captured.out
 
-    @patch('builtins.input')
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
-    def test_cmd_interactive_quit(self, mock_get_setup, mock_create_agent, mock_input, capsys):
+    @patch("builtins.input")
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
+    def test_cmd_interactive_quit(
+        self, mock_get_setup, mock_create_agent, mock_input, capsys
+    ):
         """Test interactive mode with quit command."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_agent = Mock()
@@ -163,15 +157,17 @@ class TestCmdInteractive:
         assert "🎮 Interactive tools Agent Session" in captured.out
         assert "👋 Goodbye!" in captured.out
 
-    @patch('builtins.input')
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
-    def test_cmd_interactive_conversation(self, mock_get_setup, mock_create_agent, mock_input, capsys):
+    @patch("builtins.input")
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
+    def test_cmd_interactive_conversation(
+        self, mock_get_setup, mock_create_agent, mock_input, capsys
+    ):
         """Test interactive conversation flow."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_agent = Mock()
@@ -193,15 +189,17 @@ class TestCmdInteractive:
         # Check that agent was called with message history
         mock_agent.run_sync.assert_called_with("hi", message_history=[])
 
-    @patch('builtins.input')
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
-    def test_cmd_interactive_empty_input(self, mock_get_setup, mock_create_agent, mock_input, capsys):
+    @patch("builtins.input")
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
+    def test_cmd_interactive_empty_input(
+        self, mock_get_setup, mock_create_agent, mock_input, capsys
+    ):
         """Test interactive mode with empty input."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_agent = Mock()
@@ -213,15 +211,17 @@ class TestCmdInteractive:
         # Agent should not be called for empty inputs
         mock_agent.run_sync.assert_not_called()
 
-    @patch('builtins.input')
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
-    def test_cmd_interactive_keyboard_interrupt(self, mock_get_setup, mock_create_agent, mock_input, capsys):
+    @patch("builtins.input")
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
+    def test_cmd_interactive_keyboard_interrupt(
+        self, mock_get_setup, mock_create_agent, mock_input, capsys
+    ):
         """Test interactive mode with keyboard interrupt."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_agent = Mock()
@@ -233,16 +233,16 @@ class TestCmdInteractive:
         captured = capsys.readouterr()
         assert "👋 Goodbye!" in captured.out
 
-    @patch('cli.get_recommended_setup')
+    @patch("cli.get_recommended_setup")
     def test_cmd_interactive_agent_creation_error(self, mock_get_setup, capsys):
         """Test interactive mode when agent creation fails."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
-        with patch('cli.create_tutorial_agent') as mock_create_agent:
+        with patch("cli.create_tutorial_agent") as mock_create_agent:
             mock_create_agent.side_effect = Exception("Failed to create agent")
 
             cmd_interactive("tools")
@@ -251,15 +251,14 @@ class TestCmdInteractive:
             assert "❌ Failed to create agent: Failed to create agent" in captured.out
 
 
+@pytest.mark.unit
 class TestCmdTutorial:
     """Test cmd_tutorial function."""
 
-    @patch('cli.get_recommended_setup')
+    @patch("cli.get_recommended_setup")
     def test_cmd_tutorial_not_ready(self, mock_get_setup, capsys):
         """Test tutorial when system is not ready."""
-        mock_get_setup.return_value = {
-            'status': 'no_providers'
-        }
+        mock_get_setup.return_value = {"status": "no_providers"}
 
         cmd_tutorial()
 
@@ -268,14 +267,14 @@ class TestCmdTutorial:
         assert "❌ No providers available" in captured.out
         assert "Setup Instructions:" in captured.out
 
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
     def test_cmd_tutorial_success(self, mock_get_setup, mock_create_agent, capsys):
         """Test successful tutorial execution."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         # Mock different agents and their responses
@@ -294,7 +293,11 @@ class TestCmdTutorial:
         mock_tools_result.output = "It's 2:30 PM and 'hello' backwards is 'olleh'"
         mock_tools_agent.run_sync.return_value = mock_tools_result
 
-        mock_create_agent.side_effect = [mock_basic_agent, mock_math_agent, mock_tools_agent]
+        mock_create_agent.side_effect = [
+            mock_basic_agent,
+            mock_math_agent,
+            mock_tools_agent,
+        ]
 
         cmd_tutorial()
 
@@ -311,14 +314,14 @@ class TestCmdTutorial:
         expected_calls = [call("basic"), call("math"), call("tools")]
         mock_create_agent.assert_has_calls(expected_calls)
 
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
     def test_cmd_tutorial_with_errors(self, mock_get_setup, mock_create_agent, capsys):
         """Test tutorial with agent creation errors."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_create_agent.side_effect = Exception("Agent creation failed")
@@ -329,91 +332,95 @@ class TestCmdTutorial:
         assert "Error: Agent creation failed" in captured.out
 
 
+@pytest.mark.unit
 class TestMain:
     """Test main CLI function."""
 
-    @patch('cli.cmd_status')
-    @patch('sys.argv', ['cli.py', 'status'])
+    @patch("cli.cmd_status")
+    @patch("sys.argv", ["cli.py", "status"])
     def test_main_status_command(self, mock_cmd_status):
         """Test main function with status command."""
         main()
         mock_cmd_status.assert_called_once()
 
-    @patch('cli.cmd_demo')
-    @patch('sys.argv', ['cli.py', 'demo'])
+    @patch("cli.cmd_demo")
+    @patch("sys.argv", ["cli.py", "demo"])
     def test_main_demo_command_default(self, mock_cmd_demo):
         """Test main function with demo command using defaults."""
         main()
-        mock_cmd_demo.assert_called_once_with('math', None)
+        mock_cmd_demo.assert_called_once_with("math", None)
 
-    @patch('cli.cmd_demo')
-    @patch('sys.argv', ['cli.py', 'demo', '--type', 'tools', '--question', 'test question'])
+    @patch("cli.cmd_demo")
+    @patch(
+        "sys.argv", ["cli.py", "demo", "--type", "tools", "--question", "test question"]
+    )
     def test_main_demo_command_with_args(self, mock_cmd_demo):
         """Test main function with demo command with arguments."""
         main()
-        mock_cmd_demo.assert_called_once_with('tools', 'test question')
+        mock_cmd_demo.assert_called_once_with("tools", "test question")
 
-    @patch('cli.cmd_interactive')
-    @patch('sys.argv', ['cli.py', 'interactive'])
+    @patch("cli.cmd_interactive")
+    @patch("sys.argv", ["cli.py", "interactive"])
     def test_main_interactive_command_default(self, mock_cmd_interactive):
         """Test main function with interactive command using defaults."""
         main()
-        mock_cmd_interactive.assert_called_once_with('tools')
+        mock_cmd_interactive.assert_called_once_with("tools")
 
-    @patch('cli.cmd_interactive')
-    @patch('sys.argv', ['cli.py', 'interactive', '--type', 'basic'])
+    @patch("cli.cmd_interactive")
+    @patch("sys.argv", ["cli.py", "interactive", "--type", "basic"])
     def test_main_interactive_command_with_args(self, mock_cmd_interactive):
         """Test main function with interactive command with arguments."""
         main()
-        mock_cmd_interactive.assert_called_once_with('basic')
+        mock_cmd_interactive.assert_called_once_with("basic")
 
-    @patch('cli.cmd_tutorial')
-    @patch('sys.argv', ['cli.py', 'tutorial'])
+    @patch("cli.cmd_tutorial")
+    @patch("sys.argv", ["cli.py", "tutorial"])
     def test_main_tutorial_command(self, mock_cmd_tutorial):
         """Test main function with tutorial command."""
         main()
         mock_cmd_tutorial.assert_called_once()
 
-    @patch('subprocess.run')
-    @patch('sys.argv', ['cli.py', 'app'])
+    @patch("subprocess.run")
+    @patch("sys.argv", ["cli.py", "app"])
     def test_main_app_command(self, mock_subprocess_run):
         """Test main function with app command."""
         main()
-        mock_subprocess_run.assert_called_once_with([
-            sys.executable, '-m', 'streamlit', 'run', 'src/agent_intro/app.py'
-        ])
+        mock_subprocess_run.assert_called_once_with(
+            [sys.executable, "-m", "streamlit", "run", "src/agent_intro/app.py"]
+        )
 
-    @patch('sys.argv', ['cli.py'])
+    @patch("sys.argv", ["cli.py"])
     def test_main_no_command(self, capsys):
         """Test main function with no command (should print help)."""
-        with patch('argparse.ArgumentParser.print_help') as mock_print_help:
+        with patch("argparse.ArgumentParser.print_help") as mock_print_help:
             main()
             mock_print_help.assert_called_once()
 
-    @patch('sys.argv', ['cli.py', '--help'])
+    @patch("sys.argv", ["cli.py", "--help"])
     def test_main_help_flag(self):
         """Test main function with help flag."""
         with pytest.raises(SystemExit):
             main()
 
-    @patch('sys.argv', ['cli.py', 'demo', '--type', 'invalid'])
+    @patch("sys.argv", ["cli.py", "demo", "--type", "invalid"])
     def test_main_invalid_agent_type(self):
         """Test main function with invalid agent type."""
         with pytest.raises(SystemExit):
             main()
 
 
+@pytest.mark.unit
 class TestDefaultQuestions:
     """Test default question selection in cmd_demo."""
 
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
     def test_default_question_basic(self, mock_get_setup, mock_create_agent, capsys):
         """Test default question for basic agent."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_agent = Mock()
@@ -427,14 +434,14 @@ class TestDefaultQuestions:
         captured = capsys.readouterr()
         assert "Hello! Can you tell me what you are?" in captured.out
 
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
     def test_default_question_math(self, mock_get_setup, mock_create_agent, capsys):
         """Test default question for math agent."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_agent = Mock()
@@ -448,14 +455,14 @@ class TestDefaultQuestions:
         captured = capsys.readouterr()
         assert "What is 3 plus 12?" in captured.out
 
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
     def test_default_question_tools(self, mock_get_setup, mock_create_agent, capsys):
         """Test default question for tools agent."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_agent = Mock()
@@ -469,14 +476,14 @@ class TestDefaultQuestions:
         captured = capsys.readouterr()
         assert "What time is it and what's 5 multiplied by 7?" in captured.out
 
-    @patch('cli.create_tutorial_agent')
-    @patch('cli.get_recommended_setup')
+    @patch("cli.create_tutorial_agent")
+    @patch("cli.get_recommended_setup")
     def test_fallback_question(self, mock_get_setup, mock_create_agent, capsys):
         """Test fallback question for unknown agent type."""
         mock_get_setup.return_value = {
-            'status': 'ready',
-            'recommended_provider': 'openai',
-            'recommended_model': 'gpt-4'
+            "status": "ready",
+            "recommended_provider": "openai",
+            "recommended_model": "gpt-4",
         }
 
         mock_agent = Mock()

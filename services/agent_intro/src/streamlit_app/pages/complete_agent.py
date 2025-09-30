@@ -3,20 +3,16 @@ Complete Agent page showing all four components working together in a full agent
 """
 
 import streamlit as st
-from streamlit_app.components.code_display import (
+
+from src.streamlit_app.components.code_display import (
     display_interactive_code,
-    display_code_comparison,
 )
-from streamlit_app.components.interactive_demo import (
-    create_live_agent_chat,
-)
-from streamlit_app.utils.session_state import mark_progress
+from src.streamlit_app.utils.session_state import mark_progress
 
 
 def show_complete_agent_page():
     """Display the complete agent page content."""
-    from factory import get_recommended_setup, create_tutorial_agent
-    from models import get_available_providers, check_all_providers
+    from src.factory import get_recommended_setup
 
     st.header("🎯 Complete Agent: Everything Together")
 
@@ -50,26 +46,26 @@ def show_complete_agent_page():
             "component": "🤖 Intelligence",
             "role": "**Decision Making Core**",
             "description": "The agent understands requests, makes decisions, and provides intelligent responses",
-            "example": "Analyzes user request: 'Help me plan a budget for my vacation to Japan'"
+            "example": "Analyzes user request: 'Help me plan a budget for my vacation to Japan'",
         },
         {
             "component": "🛠️ Tools",
             "role": "**Action Layer**",
             "description": "Provides capabilities to gather information, perform calculations, and take concrete actions",
-            "example": "Uses currency_converter(), flight_search(), hotel_booking(), and budget_calculator() tools"
+            "example": "Uses currency_converter(), flight_search(), hotel_booking(), and budget_calculator() tools",
         },
         {
             "component": "🧠 Memory",
             "role": "**Context Manager**",
             "description": "Maintains conversation history and returns structured data in useful formats",
-            "example": "Remembers user preferences and returns a structured vacation budget with categories"
+            "example": "Remembers user preferences and returns a structured vacation budget with categories",
         },
         {
             "component": "🚦 Routing",
             "role": "**Orchestration Layer**",
             "description": "Coordinates multiple specialized agents and manages complex workflows",
-            "example": "Routes flight search to Travel Agent, budget calculation to Finance Agent"
-        }
+            "example": "Routes flight search to Travel Agent, budget calculation to Finance Agent",
+        },
     ]
 
     for comp in component_integration:
@@ -269,7 +265,7 @@ async def demo_complete_agent():
     display_interactive_code(
         complete_agent_code,
         "This complete agent system demonstrates all four components working together:",
-        allow_edit=False
+        allow_edit=False,
     )
 
     st.markdown("---")
@@ -288,16 +284,17 @@ async def demo_complete_agent():
         "I need a luxury 10-day honeymoon in Bali with beach resorts",
         "Family vacation to Orlando with kids, mid-range budget, 7 days",
         "Business trip to Tokyo, 3 days, need efficiency and convenience",
-        "Adventure backpacking trip through Thailand, 2 weeks, budget travel"
+        "Adventure backpacking trip through Thailand, 2 weeks, budget travel",
     ]
 
     st.markdown("**Try these vacation planning requests:**")
 
     for i, suggestion in enumerate(demo_suggestions):
-        if st.button(f"🏖️ \"{suggestion}\"", key=f"vacation_suggestion_{i}"):
+        if st.button(f'🏖️ "{suggestion}"', key=f"vacation_suggestion_{i}"):
             with st.spinner("🤖 Complete agent system working..."):
                 # Simulate the complete agent workflow
                 import time
+
                 time.sleep(2)  # Simulate processing time
 
                 # Mock a structured response showing all components
@@ -310,7 +307,7 @@ async def demo_complete_agent():
                     "🧠 Intelligence: Analyzed request and extracted key requirements",
                     "🚦 Routing: Coordinated with Travel Agent and Finance Agent",
                     "🛠️ Tools: Searched flights and calculated budget breakdown",
-                    "🧠 Memory: Synthesized all information into structured plan"
+                    "🧠 Memory: Synthesized all information into structured plan",
                 ]
 
                 for step in workflow_steps:
@@ -320,15 +317,17 @@ async def demo_complete_agent():
                 st.markdown("**📊 Structured Output Generated:**")
 
                 mock_plan = {
-                    "destination": suggestion.split("to ")[-1].split(" ")[0] if "to " in suggestion else "Destination",
+                    "destination": suggestion.split("to ")[-1].split(" ")[0]
+                    if "to " in suggestion
+                    else "Destination",
                     "duration_days": 5 if "5-day" in suggestion else 7,
                     "total_budget": 2500.00,
                     "components_used": {
                         "Intelligence": "Request analysis and decision making",
                         "Tools": "Flight search and budget calculation",
                         "Memory": "Context preservation and structured output",
-                        "Routing": "Multi-agent coordination"
-                    }
+                        "Routing": "Multi-agent coordination",
+                    },
                 }
 
                 st.json(mock_plan)
@@ -339,12 +338,13 @@ async def demo_complete_agent():
     user_vacation_request = st.text_area(
         "Describe your ideal vacation:",
         placeholder="I want to plan a trip to...",
-        key="vacation_request"
+        key="vacation_request",
     )
 
     if st.button("🎯 Plan My Vacation", key="plan_vacation") and user_vacation_request:
         with st.spinner("🤖 Complete agent system analyzing your request..."):
             import time
+
             time.sleep(3)  # Simulate complex processing
 
             st.success("✅ Your complete vacation plan is ready!")
@@ -356,27 +356,29 @@ async def demo_complete_agent():
                 {
                     "component": "🤖 Intelligence",
                     "action": f"Analyzed your request: '{user_vacation_request[:50]}...'",
-                    "result": "Identified key requirements: destination, budget, activities, timeline"
+                    "result": "Identified key requirements: destination, budget, activities, timeline",
                 },
                 {
                     "component": "🚦 Routing",
                     "action": "Coordinated between specialist agents",
-                    "result": "Travel Agent → flight search, Finance Agent → budget planning"
+                    "result": "Travel Agent → flight search, Finance Agent → budget planning",
                 },
                 {
                     "component": "🛠️ Tools",
                     "action": "Executed multiple tools automatically",
-                    "result": "search_flights(), calculate_budget(), get_weather(), find_activities()"
+                    "result": "search_flights(), calculate_budget(), get_weather(), find_activities()",
                 },
                 {
                     "component": "🧠 Memory",
                     "action": "Maintained context and structured the output",
-                    "result": "Generated complete VacationPlan with all details organized"
-                }
+                    "result": "Generated complete VacationPlan with all details organized",
+                },
             ]
 
             for comp in components_demo:
-                with st.expander(f"{comp['component']}: {comp['action']}", expanded=True):
+                with st.expander(
+                    f"{comp['component']}: {comp['action']}", expanded=True
+                ):
                     st.markdown(f"**Result:** {comp['result']}")
 
             # Final structured output
@@ -386,7 +388,7 @@ async def demo_complete_agent():
                 "request_analyzed": user_vacation_request,
                 "plan_generated": True,
                 "all_components_used": True,
-                "ready_for_booking": True
+                "ready_for_booking": True,
             }
 
             st.json(final_plan)
@@ -402,29 +404,29 @@ async def demo_complete_agent():
             "intelligence": "Understands medical symptoms and context",
             "tools": "Access medical databases, schedule appointments, check drug interactions",
             "memory": "Maintains patient history and treatment plans",
-            "routing": "Routes to specialists: cardiologist, dermatologist, general practitioner"
+            "routing": "Routes to specialists: cardiologist, dermatologist, general practitioner",
         },
         {
             "name": "💰 Financial Planning Bot",
             "intelligence": "Analyzes financial goals and risk tolerance",
             "tools": "Portfolio analysis, market data, tax calculations, investment research",
             "memory": "Tracks financial history and generates structured reports",
-            "routing": "Coordinates investment advisor, tax specialist, retirement planner"
+            "routing": "Coordinates investment advisor, tax specialist, retirement planner",
         },
         {
             "name": "🎓 Educational Tutor System",
             "intelligence": "Adapts to learning style and comprehension level",
             "tools": "Access curriculum databases, generate practice problems, grade assignments",
             "memory": "Tracks progress and maintains personalized learning path",
-            "routing": "Routes to subject experts: math tutor, science teacher, writing coach"
+            "routing": "Routes to subject experts: math tutor, science teacher, writing coach",
         },
         {
             "name": "🏢 Business Operations AI",
             "intelligence": "Understands business processes and optimization opportunities",
             "tools": "CRM integration, inventory management, financial reporting, task automation",
             "memory": "Maintains business context and generates operational insights",
-            "routing": "Coordinates sales agent, support agent, finance agent, HR agent"
-        }
+            "routing": "Coordinates sales agent, support agent, finance agent, HR agent",
+        },
     ]
 
     for example in real_world_examples:
@@ -452,8 +454,8 @@ async def demo_complete_agent():
                 "What tasks will users ask for?",
                 "What data sources do you need?",
                 "What actions should the agent take?",
-                "How complex are the workflows?"
-            ]
+                "How complex are the workflows?",
+            ],
         },
         {
             "step": "2. 🤖 Design the Intelligence Layer",
@@ -462,8 +464,8 @@ async def demo_complete_agent():
                 "Select appropriate model providers (OpenAI, Anthropic, local)",
                 "Write clear system instructions",
                 "Design error handling and fallbacks",
-                "Plan for different conversation styles"
-            ]
+                "Plan for different conversation styles",
+            ],
         },
         {
             "step": "3. 🛠️ Implement Tools and Actions",
@@ -472,8 +474,8 @@ async def demo_complete_agent():
                 "Identify required external APIs and data sources",
                 "Create type-safe tool functions with proper validation",
                 "Add error handling and retry logic",
-                "Test tool reliability and performance"
-            ]
+                "Test tool reliability and performance",
+            ],
         },
         {
             "step": "4. 🧠 Design Memory and Data Flow",
@@ -482,8 +484,8 @@ async def demo_complete_agent():
                 "Define conversation context management",
                 "Design structured output formats with Pydantic",
                 "Plan data persistence strategy",
-                "Implement context window management"
-            ]
+                "Implement context window management",
+            ],
         },
         {
             "step": "5. 🚦 Implement Routing and Orchestration",
@@ -492,8 +494,8 @@ async def demo_complete_agent():
                 "Identify specialized agent roles",
                 "Design routing logic (rule-based or AI-powered)",
                 "Implement workflow coordination",
-                "Add load balancing and fallback mechanisms"
-            ]
+                "Add load balancing and fallback mechanisms",
+            ],
         },
         {
             "step": "6. 🧪 Test and Iterate",
@@ -502,9 +504,9 @@ async def demo_complete_agent():
                 "Test individual components in isolation",
                 "Test end-to-end workflows with real scenarios",
                 "Monitor performance and error rates",
-                "Gather user feedback and iterate"
-            ]
-        }
+                "Gather user feedback and iterate",
+            ],
+        },
     ]
 
     for step_info in building_steps:
@@ -527,7 +529,7 @@ async def demo_complete_agent():
         "**Error Handling**: How gracefully does the system handle unexpected situations?",
         "**Cost Efficiency**: Are you optimizing for model usage and API costs?",
         "**Scalability**: Can your system handle increased load and complexity?",
-        "**Maintainability**: How easy is it to add new capabilities and fix issues?"
+        "**Maintainability**: How easy is it to add new capabilities and fix issues?",
     ]
 
     st.markdown("**Key metrics for production agent systems:**")
@@ -569,7 +571,7 @@ async def demo_complete_agent():
         "🔧 **Integrate with Your Applications**: Connect agents to your existing systems and workflows",
         "👥 **Join the Community**: Share your creations and learn from other agent builders",
         "📈 **Scale to Production**: Implement monitoring, logging, and reliability patterns",
-        "🎯 **Specialize Your Agents**: Create domain-specific agents for your industry or use case"
+        "🎯 **Specialize Your Agents**: Create domain-specific agents for your industry or use case",
     ]
 
     for step in next_steps:
@@ -585,7 +587,7 @@ async def demo_complete_agent():
         "[Agent Examples Repository](https://github.com/pydantic/pydantic-ai) - Real-world agent implementations",
         "[Model Provider Documentation](https://pydantic-ai.pydantic.dev/models/) - Integration guides",
         "[Community Discord](https://discord.gg/pydantic) - Connect with other developers",
-        "[Agent Design Patterns](https://pydantic-ai.pydantic.dev/patterns/) - Production-ready patterns"
+        "[Agent Design Patterns](https://pydantic-ai.pydantic.dev/patterns/) - Production-ready patterns",
     ]
 
     for resource in resources:
@@ -598,7 +600,9 @@ async def demo_complete_agent():
         if st.button("🎯 Tutorial Complete!", key="tutorial_complete", type="primary"):
             mark_progress("complete_agent", True)
             st.balloons()
-            st.success("🎉 Congratulations! You're now ready to build amazing AI agents!")
+            st.success(
+                "🎉 Congratulations! You're now ready to build amazing AI agents!"
+            )
 
     st.markdown("---")
 

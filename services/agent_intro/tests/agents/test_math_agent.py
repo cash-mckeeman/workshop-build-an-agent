@@ -1,11 +1,15 @@
 """Tests for math_agent module."""
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from pydantic_ai import Agent
-from agents.math_agent import create_math_agent
+
+from src.agents.math_agent import create_math_agent
 
 
+@pytest.mark.integration
+@pytest.mark.requires_api
 class TestMathAgent:
     """Test cases for math agent functionality."""
 
@@ -43,7 +47,7 @@ class TestMathAgent:
         assert "tools" in instructions.lower()
         assert "calculations" in instructions.lower()
 
-    @patch('agents.math_agent.register_multiple_tools')
+    @patch("src.agents.math_agent.register_multiple_tools")
     def test_tools_registration_called(self, mock_register):
         """Test that tool registration is called during agent creation."""
         create_math_agent()
@@ -56,15 +60,15 @@ class TestMathAgent:
         agent_arg, tools_dict = call_args[0]
 
         assert isinstance(agent_arg, Agent)
-        assert 'add' in tools_dict
-        assert 'multiply' in tools_dict
+        assert "add" in tools_dict
+        assert "multiply" in tools_dict
 
     def test_different_model_providers(self):
         """Test agent creation with different model providers."""
         providers = [
             "openai:gpt-4o-mini",
             "anthropic:claude-3-haiku-20240307",
-            "groq:llama3-8b-8192"
+            "groq:llama3-8b-8192",
         ]
 
         for provider in providers:

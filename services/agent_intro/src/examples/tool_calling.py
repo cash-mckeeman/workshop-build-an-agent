@@ -5,12 +5,10 @@ This example demonstrates the agent's ability to use tools for mathematical
 calculations, replicating the tutorial from the original notebook.
 """
 
-import os
-from pathlib import Path
 from dotenv import load_dotenv
 
 # Import from the package
-from agents.basic_agent import create_basic_agent
+from src.agents.basic_agent import create_basic_agent
 
 
 def tool_calling_demo():
@@ -25,7 +23,7 @@ def tool_calling_demo():
     agent = create_basic_agent(
         model_name="meta-llama/Llama-3.2-3B-Instruct",
         temperature=0.1,  # Lower temperature for more consistent tool usage
-        max_new_tokens=512
+        max_new_tokens=512,
     )
 
     # Test cases that should trigger tool usage
@@ -34,7 +32,7 @@ def tool_calling_demo():
         "Can you multiply 7 by 8?",
         "What's 100 minus 37?",
         "Calculate 15 + 25, then multiply by 2",
-        "What is (10 + 5) * (20 - 15)?"
+        "What is (10 + 5) * (20 - 15)?",
     ]
 
     for question in math_questions:
@@ -70,10 +68,10 @@ def interactive_tool_demo():
     while True:
         try:
             user_input = input("\n👤 You: ").strip()
-            if user_input.lower() in ['quit', 'exit', 'q']:
+            if user_input.lower() in ["quit", "exit", "q"]:
                 break
 
-            response = agent.chat(user_input)
+            _ = agent.chat(user_input)
 
         except KeyboardInterrupt:
             print("\n\n👋 Goodbye!")

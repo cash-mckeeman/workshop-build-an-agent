@@ -1,16 +1,18 @@
 """Tests for tools.validators module."""
 
 import pytest
-from tools.validators import (
-    validate_positive_int,
-    validate_string_length,
-    validate_range,
-    validate_non_empty,
+
+from src.tools.validators import (
     validate_email_format,
-    validate_url_format
+    validate_non_empty,
+    validate_positive_int,
+    validate_range,
+    validate_string_length,
+    validate_url_format,
 )
 
 
+@pytest.mark.unit
 class TestValidators:
     """Test cases for validator functions."""
 
@@ -45,20 +47,28 @@ class TestValidators:
     def test_validate_string_length_invalid(self):
         """Test validate_string_length with invalid inputs."""
         # Too short (default min_length=1)
-        with pytest.raises(ValueError, match="String must be at least 1 characters, got 0"):
+        with pytest.raises(
+            ValueError, match="String must be at least 1 characters, got 0"
+        ):
             validate_string_length("")
 
         # Too long (default max_length=1000)
         long_string = "a" * 1001
-        with pytest.raises(ValueError, match="String must be at most 1000 characters, got 1001"):
+        with pytest.raises(
+            ValueError, match="String must be at most 1000 characters, got 1001"
+        ):
             validate_string_length(long_string)
 
         # Custom bounds - too short
-        with pytest.raises(ValueError, match="String must be at least 5 characters, got 3"):
+        with pytest.raises(
+            ValueError, match="String must be at least 5 characters, got 3"
+        ):
             validate_string_length("abc", 5, 10)
 
         # Custom bounds - too long
-        with pytest.raises(ValueError, match="String must be at most 3 characters, got 5"):
+        with pytest.raises(
+            ValueError, match="String must be at most 3 characters, got 5"
+        ):
             validate_string_length("hello", 1, 3)
 
     def test_validate_range_valid(self):
@@ -70,13 +80,19 @@ class TestValidators:
 
     def test_validate_range_invalid(self):
         """Test validate_range with invalid inputs."""
-        with pytest.raises(ValueError, match="Value must be between 0.0 and 10.0, got -1.0"):
+        with pytest.raises(
+            ValueError, match="Value must be between 0.0 and 10.0, got -1.0"
+        ):
             validate_range(-1.0, 0.0, 10.0)
 
-        with pytest.raises(ValueError, match="Value must be between 0.0 and 10.0, got 11.0"):
+        with pytest.raises(
+            ValueError, match="Value must be between 0.0 and 10.0, got 11.0"
+        ):
             validate_range(11.0, 0.0, 10.0)
 
-        with pytest.raises(ValueError, match="Value must be between -5.0 and 5.0, got 6.0"):
+        with pytest.raises(
+            ValueError, match="Value must be between -5.0 and 5.0, got 6.0"
+        ):
             validate_range(6.0, -5.0, 5.0)
 
     def test_validate_non_empty_valid(self):
@@ -108,7 +124,7 @@ class TestValidators:
             "user.name@domain.org",
             "first.last+tag@subdomain.example.co.uk",
             "user123@test-domain.net",
-            "a@b.co"
+            "a@b.co",
         ]
 
         for email in valid_emails:
@@ -124,7 +140,7 @@ class TestValidators:
             "user.domain.com",
             "",
             "user@domain.",
-            "user name@domain.com"  # space in local part
+            "user name@domain.com",  # space in local part
         ]
 
         for email in invalid_emails:
@@ -140,7 +156,7 @@ class TestValidators:
             "http://subdomain.example.org",
             "https://example.com/path/to/resource",
             "https://example.com:8080",
-            "https://example.com/path?query=value"
+            "https://example.com/path?query=value",
         ]
 
         for url in valid_urls:
@@ -155,7 +171,7 @@ class TestValidators:
             "http://",
             "",
             "example.com",
-            "www.example.com"
+            "www.example.com",
         ]
 
         for url in invalid_urls:

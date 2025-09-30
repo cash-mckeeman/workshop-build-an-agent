@@ -1,11 +1,15 @@
 """Tests for demo_agent module."""
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from pydantic_ai import Agent
-from agents.demo_agent import create_demo_agent
+
+from src.agents.demo_agent import create_demo_agent
 
 
+@pytest.mark.integration
+@pytest.mark.requires_api
 class TestDemoAgent:
     """Test cases for demo agent functionality."""
 
@@ -35,7 +39,7 @@ class TestDemoAgent:
         assert "current time" in instructions.lower()
         assert "cannot perform mathematical calculations" in instructions.lower()
 
-    @patch('agents.demo_agent.register_multiple_tools')
+    @patch("src.agents.demo_agent.register_multiple_tools")
     def test_tools_registration_called(self, mock_register):
         """Test that tool registration is called during agent creation."""
         create_demo_agent()
@@ -48,18 +52,18 @@ class TestDemoAgent:
         agent_arg, tools_dict = call_args[0]
 
         assert isinstance(agent_arg, Agent)
-        assert 'get_current_time' in tools_dict
-        assert 'get_fun_fact' in tools_dict
-        assert 'count_words' in tools_dict
-        assert 'reverse_text' in tools_dict
-        assert 'check_palindrome' in tools_dict
+        assert "get_current_time" in tools_dict
+        assert "get_fun_fact" in tools_dict
+        assert "count_words" in tools_dict
+        assert "reverse_text" in tools_dict
+        assert "check_palindrome" in tools_dict
 
     def test_different_model_providers(self):
         """Test agent creation with different model providers."""
         providers = [
             "openai:gpt-4o-mini",
             "anthropic:claude-3-haiku-20240307",
-            "groq:llama3-8b-8192"
+            "groq:llama3-8b-8192",
         ]
 
         for provider in providers:

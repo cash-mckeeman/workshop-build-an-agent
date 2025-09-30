@@ -3,20 +3,16 @@ Routing page for learning about advanced agent orchestration and multi-agent wor
 """
 
 import streamlit as st
-from streamlit_app.components.code_display import (
+
+from src.streamlit_app.components.code_display import (
     display_interactive_code,
-    display_code_comparison,
 )
-from streamlit_app.components.interactive_demo import (
-    create_live_agent_chat,
-)
-from streamlit_app.utils.session_state import mark_progress
+from src.streamlit_app.utils.session_state import mark_progress
 
 
 def show_routing_page():
     """Display the routing page content."""
-    from factory import get_recommended_setup, create_tutorial_agent
-    from models import get_available_providers, check_all_providers
+    from src.factory import get_recommended_setup
 
     st.header("🚦 Routing & Agent Orchestration")
 
@@ -53,7 +49,7 @@ def show_routing_page():
 
     with col1:
         st.markdown("**Single Agent (Does Everything)**")
-        single_agent_example = '''
+        single_agent_example = """
 # One agent tries to handle everything
 general_agent = Agent("openai:gpt-4o-mini",
     instructions="Help with any task"
@@ -62,12 +58,12 @@ general_agent = Agent("openai:gpt-4o-mini",
 # User: "Write code and explain math"
 # Agent: Mediocre at both coding and math
 # ❌ Jack of all trades, master of none
-'''
+"""
         st.code(single_agent_example, language="python")
 
     with col2:
         st.markdown("**Multi-Agent Router (Specialists)**")
-        multi_agent_example = '''
+        multi_agent_example = """
 # Specialized agents for different tasks
 router = Agent("openai:gpt-4o-mini",
     instructions="Route requests to specialists"
@@ -84,7 +80,7 @@ math_expert = Agent("anthropic:claude-3-haiku",
 # Router decides: coding → coding_expert
 #                 math → math_expert
 # ✅ Each expert excels in their domain
-'''
+"""
         st.code(multi_agent_example, language="python")
 
     st.markdown("---")
@@ -108,7 +104,7 @@ def route_by_intent(user_message):
         return creative_agent
     else:
         return general_agent
-'''
+''',
         },
         {
             "name": "📊 Capability-Based Routing",
@@ -129,7 +125,7 @@ def route_by_capability(required_capabilities):
             return agents[capability]
 
     return general_agent
-'''
+''',
         },
         {
             "name": "🔄 Sequential Workflow Routing",
@@ -153,7 +149,7 @@ async def sequential_workflow(user_request):
     )
 
     return final_result
-'''
+''',
         },
         {
             "name": "🤖 AI-Powered Smart Routing",
@@ -188,12 +184,14 @@ async def smart_route(user_message):
 
     chosen_agent = agent_map.get(route_decision.output, general_agent)
     return await chosen_agent.run(user_message)
-'''
-        }
+''',
+        },
     ]
 
     for pattern in routing_patterns:
-        with st.expander(f"{pattern['name']}: {pattern['description']}", expanded=False):
+        with st.expander(
+            f"{pattern['name']}: {pattern['description']}", expanded=False
+        ):
             st.markdown(f"**Example:** {pattern['example']}")
             st.code(pattern["code"], language="python")
 
@@ -212,37 +210,38 @@ async def smart_route(user_message):
         {
             "request": "Help me write a Python function to calculate compound interest",
             "expected_route": "Programming Agent",
-            "reasoning": "Contains 'Python function' - clearly a coding task"
+            "reasoning": "Contains 'Python function' - clearly a coding task",
         },
         {
             "request": "What's the derivative of x² + 3x + 5?",
             "expected_route": "Math Agent",
-            "reasoning": "Mathematical calculus question"
+            "reasoning": "Mathematical calculus question",
         },
         {
             "request": "Write a creative story about a robot learning to paint",
             "expected_route": "Creative Agent",
-            "reasoning": "Creative writing request"
+            "reasoning": "Creative writing request",
         },
         {
             "request": "Research the latest trends in artificial intelligence",
             "expected_route": "Research Agent",
-            "reasoning": "Information gathering and research task"
-        }
+            "reasoning": "Information gathering and research task",
+        },
     ]
 
     st.markdown("**Try these example requests to see routing in action:**")
 
     for i, demo in enumerate(demo_requests):
-        with st.expander(f"Example {i+1}: {demo['request'][:50]}...", expanded=False):
+        with st.expander(f"Example {i + 1}: {demo['request'][:50]}...", expanded=False):
             st.markdown(f"**Full Request:** {demo['request']}")
             st.markdown(f"**Expected Route:** {demo['expected_route']}")
             st.markdown(f"**Reasoning:** {demo['reasoning']}")
 
-            if st.button(f"🔀 Test Routing", key=f"route_demo_{i}"):
+            if st.button("🔀 Test Routing", key=f"route_demo_{i}"):
                 with st.spinner("Analyzing request and routing..."):
                     # Simulate routing logic
                     import time
+
                     time.sleep(1)  # Simulate processing
 
                     st.success(f"✅ Routed to: **{demo['expected_route']}**")
@@ -250,7 +249,9 @@ async def smart_route(user_message):
 
     # Manual routing test
     st.markdown("**Or test with your own request:**")
-    user_request = st.text_input("Enter a request to see how it would be routed:", key="manual_routing")
+    user_request = st.text_input(
+        "Enter a request to see how it would be routed:", key="manual_routing"
+    )
 
     if st.button("🔀 Route My Request", key="manual_route") and user_request:
         with st.spinner("Analyzing request..."):
@@ -267,7 +268,7 @@ async def smart_route(user_message):
                 "creative": ["Creative Agent", "Creative task"],
                 "research": ["Research Agent", "Information gathering needed"],
                 "find": ["Research Agent", "Information search required"],
-                "trends": ["Research Agent", "Current information needed"]
+                "trends": ["Research Agent", "Current information needed"],
             }
 
             # Simple routing based on keywords
@@ -372,7 +373,7 @@ async def complex_workflow(user_request: str) -> WorkflowResult:
     display_interactive_code(
         coordination_example,
         "This workflow coordinates 4 different agents to handle complex requests:",
-        allow_edit=False
+        allow_edit=False,
     )
 
     st.markdown("---")
@@ -389,8 +390,8 @@ async def complex_workflow(user_request: str) -> WorkflowResult:
                 "Science Tutor Agent - Physics, chemistry, biology",
                 "Language Arts Agent - Writing, literature, grammar",
                 "History Agent - World history, civics, social studies",
-                "Coordinator Agent - Manages learning paths and progress"
-            ]
+                "Coordinator Agent - Manages learning paths and progress",
+            ],
         },
         {
             "name": "🏥 Healthcare Assistant",
@@ -400,8 +401,8 @@ async def complex_workflow(user_request: str) -> WorkflowResult:
                 "Medication Agent - Drug interactions and information",
                 "Exercise Agent - Fitness and wellness recommendations",
                 "Mental Health Agent - Stress and wellness support",
-                "Triage Agent - Determines urgency and routing"
-            ]
+                "Triage Agent - Determines urgency and routing",
+            ],
         },
         {
             "name": "💼 Business Automation",
@@ -411,8 +412,8 @@ async def complex_workflow(user_request: str) -> WorkflowResult:
                 "Support Agent - Technical support and troubleshooting",
                 "Finance Agent - Billing, invoicing, and payments",
                 "HR Agent - Employee questions and policy information",
-                "Executive Agent - Strategic decisions and reporting"
-            ]
+                "Executive Agent - Strategic decisions and reporting",
+            ],
         },
         {
             "name": "🛍️ E-commerce Platform",
@@ -422,13 +423,15 @@ async def complex_workflow(user_request: str) -> WorkflowResult:
                 "Inventory Agent - Stock levels and availability",
                 "Pricing Agent - Discounts and dynamic pricing",
                 "Shipping Agent - Delivery options and tracking",
-                "Returns Agent - Refunds and exchange processing"
-            ]
-        }
+                "Returns Agent - Refunds and exchange processing",
+            ],
+        },
     ]
 
     for example in real_world_examples:
-        with st.expander(f"{example['name']}: {example['description']}", expanded=False):
+        with st.expander(
+            f"{example['name']}: {example['description']}", expanded=False
+        ):
             st.markdown("**Specialized Agents:**")
             for agent in example["agents"]:
                 st.markdown(f"- {agent}")
@@ -442,7 +445,7 @@ async def complex_workflow(user_request: str) -> WorkflowResult:
         {
             "title": "⚖️ Load Balancing",
             "description": "Distribute requests across multiple instances of the same agent",
-            "code": '''
+            "code": """
 import random
 from typing import List
 
@@ -459,7 +462,7 @@ class LoadBalancer:
         self.current_loads[min_load_index] += 1
 
         return self.agents[min_load_index]
-'''
+""",
         },
         {
             "title": "🔄 Fallback Routing",
@@ -483,7 +486,7 @@ async def fallback_routing(request: str, primary_agent: Agent,
                 continue
 
         return "All agents failed to handle the request"
-'''
+''',
         },
         {
             "title": "📊 Adaptive Routing",
@@ -517,8 +520,8 @@ class AdaptiveRouter:
             self.success_rates[agent_name] = min(1.0, current_rate + 0.1)
         else:
             self.success_rates[agent_name] = max(0.0, current_rate - 0.1)
-'''
-        }
+''',
+        },
     ]
 
     for concept in advanced_concepts:
@@ -539,7 +542,7 @@ class AdaptiveRouter:
         "**Error handling**: Gracefully handle failures in multi-agent workflows",
         "**User feedback**: Allow users to correct routing decisions to improve the system",
         "**Context preservation**: Maintain conversation context across agent handoffs",
-        "**Cost optimization**: Route expensive requests to powerful models, simple ones to efficient models"
+        "**Cost optimization**: Route expensive requests to powerful models, simple ones to efficient models",
     ]
 
     for practice in best_practices:
@@ -558,8 +561,8 @@ class AdaptiveRouter:
                 "Tasks require specialized knowledge or capabilities",
                 "You want to optimize cost (route simple tasks to cheaper models)",
                 "You need different response formats or styles for different use cases",
-                "Complex multi-step workflows require coordination"
-            ]
+                "Complex multi-step workflows require coordination",
+            ],
         },
         {
             "scenario": "❌ **Skip Routing When:**",
@@ -568,9 +571,9 @@ class AdaptiveRouter:
                 "A single general-purpose agent handles everything well",
                 "The overhead of routing isn't worth the specialization benefits",
                 "You're building a simple prototype or MVP",
-                "Latency is critical and routing adds too much delay"
-            ]
-        }
+                "Latency is critical and routing adds too much delay",
+            ],
+        },
     ]
 
     for scenario in routing_scenarios:
@@ -603,9 +606,13 @@ class AdaptiveRouter:
     col1, col2, col3 = st.columns([2, 1, 2])
 
     with col2:
-        if st.button("✅ I Understand Routing!", key="understand_routing", type="primary"):
+        if st.button(
+            "✅ I Understand Routing!", key="understand_routing", type="primary"
+        ):
             mark_progress("routing", True)
-            st.success("Amazing! Now see everything work together in the **Complete Agent** demo!")
+            st.success(
+                "Amazing! Now see everything work together in the **Complete Agent** demo!"
+            )
 
     st.markdown("---")
 

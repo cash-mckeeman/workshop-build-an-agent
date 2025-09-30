@@ -2,8 +2,7 @@
 Formatting utilities for the Streamlit app.
 """
 
-import streamlit as st
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 def format_code_block(code: str, language: str = "python") -> str:
@@ -44,17 +43,21 @@ def format_provider_status(name: str, status: str, message: str = "") -> str:
         return f"❌ **{name.upper()}**: {message}"
 
 
-def format_tutorial_progress(progress: Dict[str, bool]) -> str:
+def format_tutorial_progress(progress: dict[str, bool]) -> str:
     """Format tutorial progress as a progress bar."""
     total_steps = len(progress)
     completed_steps = sum(progress.values())
     progress_percent = (completed_steps / total_steps) * 100 if total_steps > 0 else 0
 
-    progress_bar = "█" * int(progress_percent // 10) + "░" * (10 - int(progress_percent // 10))
+    progress_bar = "█" * int(progress_percent // 10) + "░" * (
+        10 - int(progress_percent // 10)
+    )
     return f"Progress: {progress_bar} {completed_steps}/{total_steps} ({progress_percent:.0f}%)"
 
 
-def format_component_explanation(title: str, description: str, examples: List[str] = None) -> str:
+def format_component_explanation(
+    title: str, description: str, examples: list[str] = None
+) -> str:
     """Format component explanation with examples."""
     explanation = f"### {title}\n\n{description}\n\n"
 
@@ -66,7 +69,7 @@ def format_component_explanation(title: str, description: str, examples: List[st
     return explanation
 
 
-def format_step_by_step(steps: List[str], current_step: int = -1) -> str:
+def format_step_by_step(steps: list[str], current_step: int = -1) -> str:
     """Format step-by-step instructions with current step highlighted."""
     formatted_steps = []
 
@@ -81,7 +84,9 @@ def format_step_by_step(steps: List[str], current_step: int = -1) -> str:
     return "\n".join(formatted_steps)
 
 
-def format_code_with_explanation(code: str, explanation: str, language: str = "python") -> str:
+def format_code_with_explanation(
+    code: str, explanation: str, language: str = "python"
+) -> str:
     """Format code block with explanation."""
     return f"{explanation}\n\n{format_code_block(code, language)}"
 
@@ -97,19 +102,25 @@ def format_agent_comparison(basic_result: str, enhanced_result: str) -> str:
 """
 
 
-def format_tool_call_visualization(tool_name: str, inputs: Dict[str, Any], output: Any) -> str:
+def format_tool_call_visualization(
+    tool_name: str, inputs: dict[str, Any], output: Any
+) -> str:
     """Format tool call for visualization."""
     formatted_inputs = ", ".join([f"{k}={v}" for k, v in inputs.items()])
     return f"🔧 **Tool Call:** `{tool_name}({formatted_inputs})` → `{output}`"
 
 
-def format_conversation_history(messages: List[Dict[str, str]], max_messages: int = 10) -> str:
+def format_conversation_history(
+    messages: list[dict[str, str]], max_messages: int = 10
+) -> str:
     """Format conversation history for display."""
     if not messages:
         return "No conversation history yet."
 
     # Show only the last max_messages
-    recent_messages = messages[-max_messages:] if len(messages) > max_messages else messages
+    recent_messages = (
+        messages[-max_messages:] if len(messages) > max_messages else messages
+    )
 
     formatted = []
     for msg in recent_messages:
@@ -117,12 +128,16 @@ def format_conversation_history(messages: List[Dict[str, str]], max_messages: in
         formatted.append(f"{role} **{msg['role'].title()}:** {msg['content']}")
 
     if len(messages) > max_messages:
-        formatted.insert(0, f"... (showing last {max_messages} of {len(messages)} messages)")
+        formatted.insert(
+            0, f"... (showing last {max_messages} of {len(messages)} messages)"
+        )
 
     return "\n\n".join(formatted)
 
 
-def format_memory_visualization(conversation_turns: int, total_tokens: int = None) -> str:
+def format_memory_visualization(
+    conversation_turns: int, total_tokens: int = None
+) -> str:
     """Format memory state visualization."""
     memory_info = f"💾 **Memory State:**\n- Conversation turns: {conversation_turns}"
 

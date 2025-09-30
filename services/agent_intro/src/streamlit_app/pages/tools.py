@@ -3,22 +3,20 @@ Tools page for learning about agent tools and function calling.
 """
 
 import streamlit as st
-from streamlit_app.components.code_display import (
+
+from src.streamlit_app.components.code_display import (
     display_interactive_code,
-    display_code_comparison,
-    display_tool_signature
 )
-from streamlit_app.components.interactive_demo import (
+from src.streamlit_app.components.interactive_demo import (
+    agent_comparison_demo,
     tool_execution_sandbox,
-    agent_comparison_demo
 )
-from streamlit_app.utils.session_state import mark_progress
+from src.streamlit_app.utils.session_state import mark_progress
 
 
 def show_tools_page():
     """Display the tools page content."""
-    from factory import get_recommended_setup, create_tutorial_agent
-    from models import get_available_providers, check_all_providers
+    from src.factory import create_tutorial_agent, get_recommended_setup
 
     st.header("🛠️ Tools & Function Calling")
 
@@ -50,13 +48,13 @@ def show_tools_page():
 
     with col1:
         st.markdown("**Without Tools (Basic Chatbot)**")
-        basic_example = '''
+        basic_example = """
 # Just a language model
 agent = Agent("openai:gpt-4o-mini")
 
 # User asks: "What is 3 plus 12?"
 # Agent guesses: "Around 15" ❌
-'''
+"""
         st.code(basic_example, language="python")
 
         if st.button("🚫 Try Basic Agent", key="basic_demo"):
@@ -65,7 +63,9 @@ agent = Agent("openai:gpt-4o-mini")
                     agent = create_tutorial_agent("basic")
                     result = agent.run_sync("What is 3 plus 12?")
                     st.write("**Response:**", result.output)
-                    st.warning("⚠️ Cannot provide exact calculation - no tools available!")
+                    st.warning(
+                        "⚠️ Cannot provide exact calculation - no tools available!"
+                    )
                 except Exception as e:
                     st.error(f"Error: {e}")
 
@@ -121,7 +121,7 @@ def add(a: int, b: int) -> int:
     """Add two numbers together."""
     return a + b
 ''',
-            "explanation": "Start with a regular Python function with type hints and a docstring."
+            "explanation": "Start with a regular Python function with type hints and a docstring.",
         },
         {
             "title": "Step 2: Register with Agent",
@@ -135,18 +135,18 @@ def add(a: int, b: int) -> int:
     """Add two numbers together."""
     return a + b
 ''',
-            "explanation": "Use the @agent.tool decorator to register your function."
+            "explanation": "Use the @agent.tool decorator to register your function.",
         },
         {
             "title": "Step 3: Agent Uses Tool Automatically",
-            "code": '''
+            "code": """
 # Agent automatically calls tools when needed
 result = agent.run_sync("What is 5 + 3?")
 print(result.output)
 # Output: "The answer is 8" (after calling add(5, 3))
-''',
-            "explanation": "The agent automatically decides when and how to use your tools!"
-        }
+""",
+            "explanation": "The agent automatically decides when and how to use your tools!",
+        },
     ]
 
     for i, step in enumerate(tool_steps):
@@ -164,36 +164,46 @@ print(result.output)
             "name": "📊 Math Tools",
             "description": "Perform calculations",
             "examples": ["add()", "multiply()", "power()", "factorial()"],
-            "use_cases": ["Financial calculations", "Engineering computations", "Data analysis"]
+            "use_cases": [
+                "Financial calculations",
+                "Engineering computations",
+                "Data analysis",
+            ],
         },
         {
             "name": "🌐 Web Tools",
             "description": "Access the internet",
             "examples": ["search_web()", "fetch_url()", "check_status()"],
-            "use_cases": ["Research", "Monitoring", "Data gathering"]
+            "use_cases": ["Research", "Monitoring", "Data gathering"],
         },
         {
             "name": "📁 File Tools",
             "description": "Work with files",
             "examples": ["read_file()", "write_file()", "list_files()"],
-            "use_cases": ["Document processing", "Data import/export", "File management"]
+            "use_cases": [
+                "Document processing",
+                "Data import/export",
+                "File management",
+            ],
         },
         {
             "name": "🗄️ Database Tools",
             "description": "Query databases",
             "examples": ["run_query()", "get_user()", "update_record()"],
-            "use_cases": ["Data retrieval", "Report generation", "User management"]
+            "use_cases": ["Data retrieval", "Report generation", "User management"],
         },
         {
             "name": "🎨 Creative Tools",
             "description": "Generate content",
             "examples": ["create_image()", "generate_music()", "write_poem()"],
-            "use_cases": ["Content creation", "Art generation", "Creative assistance"]
-        }
+            "use_cases": ["Content creation", "Art generation", "Creative assistance"],
+        },
     ]
 
     for category in tool_categories:
-        with st.expander(f"{category['name']}: {category['description']}", expanded=False):
+        with st.expander(
+            f"{category['name']}: {category['description']}", expanded=False
+        ):
             st.markdown(f"**Examples:** {', '.join(category['examples'])}")
             st.markdown(f"**Use Cases:** {', '.join(category['use_cases'])}")
 
@@ -232,16 +242,16 @@ def divide(
     if b == 0:
         raise ValueError("Cannot divide by zero")
     return a / b
-'''
+''',
         },
         {
             "title": "Multiple Tool Usage",
             "description": "Agents can chain multiple tools together",
-            "code": '''
+            "code": """
 # Agent can use multiple tools in one response
 result = agent.run_sync("What's 5 + 3 multiplied by 2?")
 # Agent calls: add(5, 3) → 8, then multiply(8, 2) → 16
-'''
+""",
         },
         {
             "title": "Error Handling",
@@ -256,8 +266,8 @@ def safe_divide(a: float, b: float) -> str:
         return f"Result: {a / b}"
     except Exception as e:
         return f"Error: {str(e)}"
-'''
-        }
+''',
+        },
     ]
 
     for concept in advanced_concepts:
@@ -277,7 +287,7 @@ def safe_divide(a: float, b: float) -> str:
         "**Error handling**: Handle edge cases and provide helpful error messages",
         "**Single responsibility**: Each tool should do one thing well",
         "**Input validation**: Validate inputs to prevent errors",
-        "**Documentation**: Include examples of how to use the tool"
+        "**Documentation**: Include examples of how to use the tool",
     ]
 
     for practice in best_practices:
@@ -326,7 +336,7 @@ def get_weather(city: str, country: Optional[str] = None) -> str:
     display_interactive_code(
         weather_tool_code,
         "This weather tool demonstrates real-world agent capabilities:",
-        allow_edit=False
+        allow_edit=False,
     )
 
     # Next steps
@@ -354,7 +364,9 @@ def get_weather(city: str, country: Optional[str] = None) -> str:
     with col2:
         if st.button("✅ I Understand Tools!", key="understand_tools", type="primary"):
             mark_progress("tools", True)
-            st.success("Excellent! Next, learn how agents remember conversations with **Memory**!")
+            st.success(
+                "Excellent! Next, learn how agents remember conversations with **Memory**!"
+            )
 
     st.markdown("---")
 

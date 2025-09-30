@@ -7,12 +7,12 @@ making it easy to switch between different models for the tutorial.
 
 import os
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
 from enum import Enum
 
 
 class ProviderType(str, Enum):
     """Enum for different provider types."""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     HUGGINGFACE = "huggingface"
@@ -23,15 +23,16 @@ class ProviderType(str, Enum):
 @dataclass
 class ModelProvider:
     """Configuration for a model provider."""
+
     name: str
     provider_type: ProviderType
     default_model: str
-    available_models: List[str]
+    available_models: list[str]
     requires_api_key: bool
-    env_var: Optional[str] = None
-    base_url: Optional[str] = None
+    env_var: str | None = None
+    base_url: str | None = None
     description: str = ""
-    recommended_for: List[str] = None
+    recommended_for: list[str] = None
 
     def __post_init__(self):
         if self.recommended_for is None:
@@ -48,12 +49,12 @@ class ModelProvider:
 
         return False
 
-    def get_model_id(self, model_name: Optional[str] = None) -> str:
+    def get_model_id(self, model_name: str | None = None) -> str:
         """Get the full model identifier for PydanticAI."""
         model = model_name or self.default_model
         return f"{self.provider_type.value}:{model}"
 
-    def get_api_key(self) -> Optional[str]:
+    def get_api_key(self) -> str | None:
         """Get the API key for this provider."""
         if self.env_var:
             return os.getenv(self.env_var)
@@ -61,22 +62,17 @@ class ModelProvider:
 
 
 # Define all supported providers
-PROVIDERS: Dict[str, ModelProvider] = {
+PROVIDERS: dict[str, ModelProvider] = {
     "openai": ModelProvider(
         name="OpenAI",
         provider_type=ProviderType.OPENAI,
         default_model="gpt-4o-mini",
-        available_models=[
-            "gpt-4o",
-            "gpt-4o-mini",
-            "gpt-3.5-turbo"
-        ],
+        available_models=["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
         requires_api_key=True,
         env_var="OPENAI_API_KEY",
         description="OpenAI's GPT models - reliable and well-documented",
-        recommended_for=["beginners", "production", "reliability"]
+        recommended_for=["beginners", "production", "reliability"],
     ),
-
     "anthropic": ModelProvider(
         name="Anthropic",
         provider_type=ProviderType.ANTHROPIC,
@@ -84,14 +80,13 @@ PROVIDERS: Dict[str, ModelProvider] = {
         available_models=[
             "claude-3-5-sonnet-20241022",
             "claude-3-haiku-20240307",
-            "claude-3-sonnet-20240229"
+            "claude-3-sonnet-20240229",
         ],
         requires_api_key=True,
         env_var="ANTHROPIC_API_KEY",
         description="Anthropic's Claude models - excellent for reasoning and safety",
-        recommended_for=["reasoning", "safety", "complex-tasks"]
+        recommended_for=["reasoning", "safety", "complex-tasks"],
     ),
-
     "huggingface": ModelProvider(
         name="HuggingFace",
         provider_type=ProviderType.HUGGINGFACE,
@@ -101,29 +96,23 @@ PROVIDERS: Dict[str, ModelProvider] = {
             "microsoft/DialoGPT-medium",
             "meta-llama/Llama-2-7b-chat-hf",
             "mistralai/Mistral-7B-Instruct-v0.1",
-            "HuggingFaceH4/zephyr-7b-beta"
+            "HuggingFaceH4/zephyr-7b-beta",
         ],
         requires_api_key=True,
         env_var="HUGGINGFACE_API_KEY",
         description="HuggingFace models via Inference API - diverse open-source options",
-        recommended_for=["open-source", "research", "cost-effective"]
+        recommended_for=["open-source", "research", "cost-effective"],
     ),
-
     "groq": ModelProvider(
         name="Groq",
         provider_type=ProviderType.GROQ,
         default_model="llama3-8b-8192",
-        available_models=[
-            "llama3-8b-8192",
-            "mixtral-8x7b-32768",
-            "gemma-7b-it"
-        ],
+        available_models=["llama3-8b-8192", "mixtral-8x7b-32768", "gemma-7b-it"],
         requires_api_key=True,
         env_var="GROQ_API_KEY",
         description="Groq's fast inference models - optimized for speed",
-        recommended_for=["speed", "low-latency", "real-time"]
+        recommended_for=["speed", "low-latency", "real-time"],
     ),
-
     "ollama": ModelProvider(
         name="Ollama",
         provider_type=ProviderType.OLLAMA,
@@ -134,31 +123,29 @@ PROVIDERS: Dict[str, ModelProvider] = {
             "mistral",
             "codellama",
             "phi3",
-            "gemma2"
+            "gemma2",
         ],
         requires_api_key=False,
         base_url="http://localhost:11434",
         description="Local Ollama models - privacy-focused, no API keys needed",
-        recommended_for=["privacy", "local", "offline", "development"]
-    )
+        recommended_for=["privacy", "local", "offline", "development"],
+    ),
 }
 
 
-def get_available_providers() -> Dict[str, ModelProvider]:
+def get_available_providers() -> dict[str, ModelProvider]:
     """Get all available providers (those with proper configuration)."""
     return {
-        name: provider
-        for name, provider in PROVIDERS.items()
-        if provider.is_available
+        name: provider for name, provider in PROVIDERS.items() if provider.is_available
     }
 
 
-def get_provider_config(provider_name: str) -> Optional[ModelProvider]:
+def get_provider_config(provider_name: str) -> ModelProvider | None:
     """Get configuration for a specific provider."""
     return PROVIDERS.get(provider_name)
 
 
-def get_recommended_provider(use_case: str) -> Optional[ModelProvider]:
+def get_recommended_provider(use_case: str) -> ModelProvider | None:
     """Get a recommended provider for a specific use case."""
     available = get_available_providers()
 
@@ -173,7 +160,7 @@ def get_recommended_provider(use_case: str) -> Optional[ModelProvider]:
     return None
 
 
-def list_models_for_provider(provider_name: str) -> List[str]:
+def list_models_for_provider(provider_name: str) -> list[str]:
     """List all available models for a provider."""
     provider = get_provider_config(provider_name)
     if provider:
@@ -181,7 +168,7 @@ def list_models_for_provider(provider_name: str) -> List[str]:
     return []
 
 
-def get_model_id(provider_name: str, model_name: Optional[str] = None) -> Optional[str]:
+def get_model_id(provider_name: str, model_name: str | None = None) -> str | None:
     """Get the full PydanticAI model identifier."""
     provider = get_provider_config(provider_name)
     if provider:
@@ -198,7 +185,7 @@ def validate_model_combination(provider_name: str, model_name: str) -> bool:
     return model_name in provider.available_models
 
 
-def get_tutorial_recommendations() -> Dict[str, str]:
+def get_tutorial_recommendations() -> dict[str, str]:
     """Get model recommendations for different tutorial scenarios."""
     available = get_available_providers()
 

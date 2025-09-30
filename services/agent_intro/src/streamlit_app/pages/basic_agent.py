@@ -3,20 +3,16 @@ Basic Agent page for learning how to create your first PydanticAI agent.
 """
 
 import streamlit as st
-from streamlit_app.components.code_display import (
+
+from src.streamlit_app.components.code_display import (
     display_interactive_code,
-    display_code_comparison,
 )
-from streamlit_app.components.interactive_demo import (
-    create_live_agent_chat,
-)
-from streamlit_app.utils.session_state import mark_progress
+from src.streamlit_app.utils.session_state import mark_progress
 
 
 def show_basic_agent_page():
     """Display the basic agent page content."""
-    from factory import get_recommended_setup, create_tutorial_agent
-    from models import get_available_providers, check_all_providers
+    from src.factory import create_tutorial_agent, get_recommended_setup
 
     st.header("🤖 Creating Your First Agent")
 
@@ -51,7 +47,7 @@ def show_basic_agent_page():
 
     with col1:
         st.markdown("**Traditional Programming**")
-        traditional_code = '''
+        traditional_code = """
 # You write exact instructions
 def calculate_tax(amount, rate):
     return amount * rate
@@ -59,13 +55,15 @@ def calculate_tax(amount, rate):
 # Computer follows exactly
 result = calculate_tax(100, 0.08)
 # Always returns 8.0
-'''
+"""
         st.code(traditional_code, language="python")
-        st.markdown("✅ **Predictable**: Same input → Same output  \n❌ **Rigid**: Can't handle unexpected requests")
+        st.markdown(
+            "✅ **Predictable**: Same input → Same output  \n❌ **Rigid**: Can't handle unexpected requests"
+        )
 
     with col2:
         st.markdown("**AI Agent**")
-        agent_code = '''
+        agent_code = """
 # You give general instructions
 agent = Agent("openai:gpt-4o-mini",
     instructions="Help with tax calculations"
@@ -76,9 +74,11 @@ result = agent.run_sync(
     "What's 8% tax on $100?"
 )
 # Returns: "The tax would be $8.00"
-'''
+"""
         st.code(agent_code, language="python")
-        st.markdown("✅ **Flexible**: Handles varied requests  \n✅ **Intelligent**: Understands intent")
+        st.markdown(
+            "✅ **Flexible**: Handles varied requests  \n✅ **Intelligent**: Understands intent"
+        )
 
     st.markdown("---")
 
@@ -92,20 +92,20 @@ result = agent.run_sync(
     agent_steps = [
         {
             "title": "Step 1: Import PydanticAI",
-            "code": '''
+            "code": """
 from pydantic_ai import Agent
-''',
-            "explanation": "PydanticAI is a modern framework that makes building agents simple and type-safe."
+""",
+            "explanation": "PydanticAI is a modern framework that makes building agents simple and type-safe.",
         },
         {
             "title": "Step 2: Create an Agent",
-            "code": '''
+            "code": """
 # Create an agent with a model provider
 agent = Agent("openai:gpt-4o-mini")
 
 # That's it! You have a working agent.
-''',
-            "explanation": "The Agent class handles all the complexity of talking to different AI models."
+""",
+            "explanation": "The Agent class handles all the complexity of talking to different AI models.",
         },
         {
             "title": "Step 3: Add Instructions (Optional)",
@@ -119,11 +119,11 @@ agent = Agent(
     """
 )
 ''',
-            "explanation": "Instructions guide how your agent behaves and responds to users."
+            "explanation": "Instructions guide how your agent behaves and responds to users.",
         },
         {
             "title": "Step 4: Talk to Your Agent",
-            "code": '''
+            "code": """
 # Synchronous (blocking) conversation
 result = agent.run_sync("Explain what a function is in Python")
 print(result.output)
@@ -131,9 +131,9 @@ print(result.output)
 # Asynchronous (non-blocking) conversation
 result = await agent.run("What are variables used for?")
 print(result.output)
-''',
-            "explanation": "Use run_sync() for simple scripts or run() for async applications."
-        }
+""",
+            "explanation": "Use run_sync() for simple scripts or run() for async applications.",
+        },
     ]
 
     for i, step in enumerate(agent_steps):
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     display_interactive_code(
         complete_example,
         "This creates a fully functional coding tutor agent in just a few lines!",
-        allow_edit=False
+        allow_edit=False,
     )
 
     st.markdown("---")
@@ -211,11 +211,15 @@ if __name__ == "__main__":
                 st.markdown(f"**🤖 Agent:** {message['content']}")
 
         # Input for new message
-        user_input = st.text_input("Ask your coding tutor a question:", key="basic_agent_input")
+        user_input = st.text_input(
+            "Ask your coding tutor a question:", key="basic_agent_input"
+        )
 
         if st.button("Send", key="basic_agent_send") and user_input:
             # Add user message
-            st.session_state.basic_agent_messages.append({"role": "user", "content": user_input})
+            st.session_state.basic_agent_messages.append(
+                {"role": "user", "content": user_input}
+            )
 
             # Get agent response
             with st.spinner("Agent is thinking..."):
@@ -224,7 +228,9 @@ if __name__ == "__main__":
                     response = result.output
 
                     # Add agent response
-                    st.session_state.basic_agent_messages.append({"role": "agent", "content": response})
+                    st.session_state.basic_agent_messages.append(
+                        {"role": "agent", "content": response}
+                    )
 
                     # Clear input (rerun to show updated chat)
                     st.rerun()
@@ -239,7 +245,9 @@ if __name__ == "__main__":
 
     except Exception as e:
         st.error(f"Could not create demo agent: {e}")
-        st.info("💡 Make sure your provider is configured correctly in the Model Setup page.")
+        st.info(
+            "💡 Make sure your provider is configured correctly in the Model Setup page."
+        )
 
     st.markdown("---")
 
@@ -254,32 +262,34 @@ if __name__ == "__main__":
         {
             "provider": "OpenAI",
             "code": 'agent = Agent("openai:gpt-4o-mini")',
-            "description": "Fast, reliable, great for production"
+            "description": "Fast, reliable, great for production",
         },
         {
             "provider": "Anthropic",
             "code": 'agent = Agent("anthropic:claude-3-haiku-20240307")',
-            "description": "Excellent reasoning, very safe responses"
+            "description": "Excellent reasoning, very safe responses",
         },
         {
             "provider": "HuggingFace",
             "code": 'agent = Agent("huggingface:microsoft/DialoGPT-medium")',
-            "description": "Free tier available, many model options"
+            "description": "Free tier available, many model options",
         },
         {
             "provider": "Ollama (Local)",
             "code": 'agent = Agent("ollama:llama3.2")',
-            "description": "Runs on your computer, complete privacy"
+            "description": "Runs on your computer, complete privacy",
         },
         {
             "provider": "Groq",
             "code": 'agent = Agent("groq:llama3-8b-8192")',
-            "description": "Extremely fast inference, great for real-time"
-        }
+            "description": "Extremely fast inference, great for real-time",
+        },
     ]
 
     for example in provider_examples:
-        with st.expander(f"{example['provider']}: {example['description']}", expanded=False):
+        with st.expander(
+            f"{example['provider']}: {example['description']}", expanded=False
+        ):
             st.code(example["code"], language="python")
 
     st.markdown("---")
@@ -294,24 +304,24 @@ if __name__ == "__main__":
     personality_examples = [
         {
             "name": "📚 Patient Teacher",
-            "instructions": "You are a patient teacher who explains things simply and checks for understanding. Always encourage questions and provide examples."
+            "instructions": "You are a patient teacher who explains things simply and checks for understanding. Always encourage questions and provide examples.",
         },
         {
             "name": "🔧 Technical Expert",
-            "instructions": "You are a senior software engineer. Provide precise, technical answers with code examples. Focus on best practices and efficiency."
+            "instructions": "You are a senior software engineer. Provide precise, technical answers with code examples. Focus on best practices and efficiency.",
         },
         {
             "name": "🌟 Cheerful Helper",
-            "instructions": "You are an enthusiastic assistant who loves helping people! Use emojis and positive language. Make learning fun and engaging."
+            "instructions": "You are an enthusiastic assistant who loves helping people! Use emojis and positive language. Make learning fun and engaging.",
         },
         {
             "name": "📊 Data Analyst",
-            "instructions": "You are a data scientist who loves numbers and insights. Always back up claims with data and suggest ways to visualize information."
+            "instructions": "You are a data scientist who loves numbers and insights. Always back up claims with data and suggest ways to visualize information.",
         },
         {
             "name": "🎨 Creative Partner",
-            "instructions": "You are a creative collaborator who thinks outside the box. Suggest innovative solutions and encourage experimental thinking."
-        }
+            "instructions": "You are a creative collaborator who thinks outside the box. Suggest innovative solutions and encourage experimental thinking.",
+        },
     ]
 
     for personality in personality_examples:
@@ -321,7 +331,7 @@ if __name__ == "__main__":
             example_code = f'''
 agent = Agent(
     "openai:gpt-4o-mini",
-    instructions="""{personality['instructions']}"""
+    instructions="""{personality["instructions"]}"""
 )
 '''
             st.code(example_code, language="python")
@@ -338,7 +348,7 @@ agent = Agent(
         "**Provide context**: Include relevant background information in instructions",
         "**Test thoroughly**: Try different types of questions to see how your agent responds",
         "**Iterate and improve**: Refine instructions based on real usage",
-        "**Handle errors gracefully**: Plan for when things go wrong"
+        "**Handle errors gracefully**: Plan for when things go wrong",
     ]
 
     for practice in best_practices:
@@ -368,9 +378,13 @@ agent = Agent(
     col1, col2, col3 = st.columns([2, 1, 2])
 
     with col2:
-        if st.button("✅ I Understand Agents!", key="understand_agents", type="primary"):
+        if st.button(
+            "✅ I Understand Agents!", key="understand_agents", type="primary"
+        ):
             mark_progress("basic_agent", True)
-            st.success("Excellent! Next, learn how to give your agents **Tools** to take actions!")
+            st.success(
+                "Excellent! Next, learn how to give your agents **Tools** to take actions!"
+            )
 
     st.markdown("---")
 

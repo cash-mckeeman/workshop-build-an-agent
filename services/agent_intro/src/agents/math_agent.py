@@ -9,8 +9,9 @@ This module replicates the exact workflow from intro_to_agents.ipynb:
 """
 
 from pydantic_ai import Agent
-from tools.math_tools import add, multiply
-from tools.agent_helpers import register_multiple_tools
+
+from src.tools.agent_helpers import register_multiple_tools
+from src.tools.math_tools import add, multiply
 
 
 def create_math_agent(
@@ -39,13 +40,13 @@ def create_math_agent(
             "Available tools: add (for addition), multiply (for multiplication). "
             "Always execute the tool and provide the actual result, not just the tool call specification. "
             "For questions that aren't math-related, explain that you only have math tools available."
-        )
+        ),
     )
 
     # Register math tools using the helper function
     math_tools = {
-        'add': add,
-        'multiply': multiply,
+        "add": add,
+        "multiply": multiply,
     }
     register_multiple_tools(agent, math_tools)
 
@@ -129,24 +130,23 @@ def demo_conversation_memory():
 
     # First calculation
     result1 = agent.run_sync("What is 5 plus 3?")
-    print(f"User: What is 5 plus 3?")
+    print("User: What is 5 plus 3?")
     print(f"Agent: {result1.output}")
     print()
 
     # Continue the conversation - agent should remember context
     result2 = agent.run_sync(
-        "Now multiply that result by 4",
-        message_history=result1.new_messages()
+        "Now multiply that result by 4", message_history=result1.new_messages()
     )
-    print(f"User: Now multiply that result by 4")
+    print("User: Now multiply that result by 4")
     print(f"Agent: {result2.output}")
     print()
 
     # Show the message history
     print("📝 Message History:")
     for i, message in enumerate(result2.all_messages(), 1):
-        role = message.get('role', 'unknown')
-        content = message.get('content', 'N/A')
+        role = message.get("role", "unknown")
+        content = message.get("content", "N/A")
         if content:
             print(f"{i}. {role.capitalize()}: {content}")
 
@@ -165,7 +165,7 @@ def interactive_math_agent():
     while True:
         try:
             user_input = input("You: ").strip()
-            if user_input.lower() in ['quit', 'exit', 'bye']:
+            if user_input.lower() in ["quit", "exit", "bye"]:
                 print("👋 Goodbye!")
                 break
 
@@ -193,7 +193,7 @@ def show_tool_schemas():
     print("🔧 Tool Schemas")
     print("=" * 30)
 
-    agent = create_math_agent()
+    _ = create_math_agent()
 
     print("The agent has access to these tools:")
     print("1. add(a: int, b: int) -> int")

@@ -2,8 +2,9 @@
 Session state management utilities for the Streamlit app.
 """
 
+from typing import Any
+
 import streamlit as st
-from typing import Any, Dict, List, Optional
 
 
 def initialize_session_state():
@@ -27,7 +28,7 @@ def initialize_session_state():
             "tools": False,
             "memory": False,
             "routing": False,
-            "complete_agent": False
+            "complete_agent": False,
         }
 
 
@@ -41,7 +42,7 @@ def clear_messages():
     st.session_state.messages = []
 
 
-def get_messages() -> List[Dict[str, str]]:
+def get_messages() -> list[dict[str, str]]:
     """Get all messages from chat history."""
     return st.session_state.messages
 
@@ -57,7 +58,7 @@ def get_progress(page: str) -> bool:
     return st.session_state.tutorial_progress.get(page, False)
 
 
-def get_overall_progress() -> Dict[str, bool]:
+def get_overall_progress() -> dict[str, bool]:
     """Get overall tutorial progress."""
     return st.session_state.tutorial_progress.copy()
 
@@ -72,13 +73,13 @@ def get_current_page() -> str:
     return st.session_state.current_page
 
 
-def store_health_results(results: Dict[str, Any]):
+def store_health_results(results: dict[str, Any]):
     """Store provider health check results."""
     st.session_state.health_results = results
     st.session_state.provider_health_checked = True
 
 
-def get_health_results() -> Dict[str, Any]:
+def get_health_results() -> dict[str, Any]:
     """Get stored provider health check results."""
     return st.session_state.health_results
 

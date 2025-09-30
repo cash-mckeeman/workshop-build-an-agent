@@ -3,15 +3,19 @@ Model setup page for configuring AI providers.
 """
 
 import streamlit as st
-from streamlit_app.components.code_display import display_interactive_code, display_agent_architecture
-from streamlit_app.utils.session_state import mark_progress
-from streamlit_app.utils.formatters import format_provider_status
+
+from src.streamlit_app.components.code_display import (
+    display_agent_architecture,
+    display_interactive_code,
+)
+from src.streamlit_app.utils.formatters import format_provider_status
+from src.streamlit_app.utils.session_state import mark_progress
 
 
 def show_model_setup_page():
     """Display the model setup page content."""
-    from factory import get_recommended_setup, create_tutorial_agent
-    from models import get_available_providers, check_all_providers
+    from src.factory import get_recommended_setup
+    from src.models import check_all_providers, get_available_providers
 
     st.header("⚙️ Model Setup")
 
@@ -30,28 +34,40 @@ def show_model_setup_page():
 
     # Get current setup status
     setup = get_recommended_setup()
-    available_providers = get_available_providers()
+    get_available_providers()
 
     if setup["status"] == "ready":
-        st.success(f"✅ **Ready!** Using {setup['recommended_provider']} with model: {setup['recommended_model']}")
+        st.success(
+            f"✅ **Ready!** Using {setup['recommended_provider']} with model: {setup['recommended_model']}"
+        )
 
         col1, col2 = st.columns([3, 1])
         with col1:
-            st.info("Your model is configured and ready to use. You can proceed to the next page or test different providers below.")
+            st.info(
+                "Your model is configured and ready to use. You can proceed to the next page or test different providers below."
+            )
         with col2:
-            if st.button("✅ Continue to Tools", key="continue_to_tools", type="primary"):
+            if st.button(
+                "✅ Continue to Tools", key="continue_to_tools", type="primary"
+            ):
                 mark_progress("model_setup", True)
-                st.success("Great! Head to the **Tools** page to learn about agent capabilities.")
+                st.success(
+                    "Great! Head to the **Tools** page to learn about agent capabilities."
+                )
 
     else:
-        st.warning("⚠️ No providers available. Please configure at least one provider below.")
+        st.warning(
+            "⚠️ No providers available. Please configure at least one provider below."
+        )
 
     # Provider configuration sections
     st.markdown("---")
     st.markdown("## 🛠️ Provider Configuration")
 
     # Cloud providers
-    with st.expander("☁️ Cloud Providers (Recommended)", expanded=setup["status"] != "ready"):
+    with st.expander(
+        "☁️ Cloud Providers (Recommended)", expanded=setup["status"] != "ready"
+    ):
         st.markdown("""
         **Pros:** Fast, reliable, no local setup required
         **Cons:** Requires API keys, usage costs
@@ -65,22 +81,25 @@ def show_model_setup_page():
                 "env_var": "OPENAI_API_KEY",
                 "models": ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
                 "description": "Most capable and reliable models",
-                "signup": "https://platform.openai.com/"
+                "signup": "https://platform.openai.com/",
             },
             {
                 "name": "Anthropic",
                 "env_var": "ANTHROPIC_API_KEY",
                 "models": ["claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"],
                 "description": "Excellent for reasoning and analysis",
-                "signup": "https://console.anthropic.com/"
+                "signup": "https://console.anthropic.com/",
             },
             {
                 "name": "HuggingFace",
                 "env_var": "HUGGINGFACE_API_KEY",
-                "models": ["microsoft/DialoGPT-medium", "meta-llama/Llama-2-7b-chat-hf"],
+                "models": [
+                    "microsoft/DialoGPT-medium",
+                    "meta-llama/Llama-2-7b-chat-hf",
+                ],
                 "description": "Open source models, free tier available",
-                "signup": "https://huggingface.co/settings/tokens"
-            }
+                "signup": "https://huggingface.co/settings/tokens",
+            },
         ]
 
         for provider in cloud_options:
@@ -88,25 +107,27 @@ def show_model_setup_page():
 
             with col1:
                 st.markdown(f"""
-                **{provider['name']}**
-                - {provider['description']}
-                - Models: {', '.join(provider['models'][:2])}
-                - Environment variable: `{provider['env_var']}`
+                **{provider["name"]}**
+                - {provider["description"]}
+                - Models: {", ".join(provider["models"][:2])}
+                - Environment variable: `{provider["env_var"]}`
                 """)
 
             with col2:
-                if st.button(f"Setup {provider['name']}", key=f"setup_{provider['name'].lower()}"):
+                if st.button(
+                    f"Setup {provider['name']}", key=f"setup_{provider['name'].lower()}"
+                ):
                     st.info(f"""
-                    **Setup Instructions for {provider['name']}:**
+                    **Setup Instructions for {provider["name"]}:**
 
-                    1. Visit {provider['signup']}
+                    1. Visit {provider["signup"]}
                     2. Create an account and get your API key
-                    3. Set environment variable: `export {provider['env_var']}=your_key_here`
+                    3. Set environment variable: `export {provider["env_var"]}=your_key_here`
                     4. Restart this application
 
                     **Quick setup (terminal):**
                     ```bash
-                    export {provider['env_var']}=your_key_here
+                    export {provider["env_var"]}=your_key_here
                     ```
                     """)
 
@@ -124,22 +145,22 @@ def show_model_setup_page():
                 "name": "Ollama",
                 "description": "Easiest local setup, great performance",
                 "install": "curl -fsSL https://ollama.ai/install.sh | sh",
-                "models": ["llama3.2", "mistral", "codellama"]
+                "models": ["llama3.2", "mistral", "codellama"],
             },
             {
                 "name": "vLLM",
                 "description": "High-performance inference server",
                 "install": "pip install vllm",
-                "models": ["Custom local models"]
-            }
+                "models": ["Custom local models"],
+            },
         ]
 
         for provider in local_options:
             st.markdown(f"""
-            **{provider['name']}**
-            - {provider['description']}
-            - Install: `{provider['install']}`
-            - Models: {', '.join(provider['models'])}
+            **{provider["name"]}**
+            - {provider["description"]}
+            - Install: `{provider["install"]}`
+            - Models: {", ".join(provider["models"])}
             """)
 
     st.markdown("---")
@@ -157,7 +178,9 @@ def show_model_setup_page():
                 with col2:
                     st.markdown("**Health Status:**")
                     for name, result in health_results.items():
-                        status_msg = format_provider_status(name, result.status.value, result.message)
+                        status_msg = format_provider_status(
+                            name, result.status.value, result.message
+                        )
                         if result.status.value == "healthy":
                             st.success(status_msg)
                         else:
@@ -181,7 +204,7 @@ def show_model_setup_page():
     # Code example
     st.markdown("### 🔧 Code Example")
 
-    basic_agent_code = '''
+    basic_agent_code = """
 from pydantic_ai import Agent
 
 # Create a basic agent with a model
@@ -193,22 +216,42 @@ agent = Agent(
 # Use the agent
 result = agent.run_sync("Hello, how are you?")
 print(result.output)  # Agent responds using the model
-'''
+"""
 
     display_interactive_code(
         basic_agent_code,
         "This is how you create a basic agent with just a model:",
-        allow_edit=False
+        allow_edit=False,
     )
 
     # Model comparison
     st.markdown("### ⚖️ Model Comparison")
 
     comparison_data = {
-        "OpenAI GPT-4": {"Speed": "Fast", "Quality": "Excellent", "Cost": "$$", "Best For": "General purpose"},
-        "Anthropic Claude": {"Speed": "Fast", "Quality": "Excellent", "Cost": "$$", "Best For": "Analysis, reasoning"},
-        "HuggingFace Models": {"Speed": "Medium", "Quality": "Good", "Cost": "$", "Best For": "Open source, customizable"},
-        "Ollama (Local)": {"Speed": "Medium", "Quality": "Good", "Cost": "Free", "Best For": "Privacy, offline use"}
+        "OpenAI GPT-4": {
+            "Speed": "Fast",
+            "Quality": "Excellent",
+            "Cost": "$$",
+            "Best For": "General purpose",
+        },
+        "Anthropic Claude": {
+            "Speed": "Fast",
+            "Quality": "Excellent",
+            "Cost": "$$",
+            "Best For": "Analysis, reasoning",
+        },
+        "HuggingFace Models": {
+            "Speed": "Medium",
+            "Quality": "Good",
+            "Cost": "$",
+            "Best For": "Open source, customizable",
+        },
+        "Ollama (Local)": {
+            "Speed": "Medium",
+            "Quality": "Good",
+            "Cost": "Free",
+            "Best For": "Privacy, offline use",
+        },
     }
 
     st.table(comparison_data)
@@ -218,7 +261,9 @@ print(result.output)  # Agent responds using the model
     st.markdown("## 🚀 Next Steps")
 
     if setup["status"] == "ready":
-        st.success("✅ Your model is ready! You can now create agents that understand and respond to natural language.")
+        st.success(
+            "✅ Your model is ready! You can now create agents that understand and respond to natural language."
+        )
 
         st.markdown("""
         **What you've accomplished:**
@@ -229,10 +274,14 @@ print(result.output)  # Agent responds using the model
         **Next up:** Learn how to give your agent **Tools** so it can take actions beyond just chatting!
         """)
 
-        if st.button("🛠️ Continue to Tools Page", key="continue_tools_bottom", type="primary"):
+        if st.button(
+            "🛠️ Continue to Tools Page", key="continue_tools_bottom", type="primary"
+        ):
             mark_progress("model_setup", True)
             st.balloons()
-            st.success("Excellent! Head to the **Tools** page to give your agent superpowers!")
+            st.success(
+                "Excellent! Head to the **Tools** page to give your agent superpowers!"
+            )
 
     else:
         st.info("""

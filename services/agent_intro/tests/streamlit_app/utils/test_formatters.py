@@ -3,28 +3,28 @@ Tests for formatting utilities.
 """
 
 import pytest
-from typing import Dict, List
 
 from streamlit_app.utils.formatters import (
-    format_code_block,
-    format_agent_response,
-    format_error_message,
-    format_success_message,
-    format_warning_message,
-    format_info_message,
-    format_provider_status,
-    format_tutorial_progress,
-    format_component_explanation,
-    format_step_by_step,
-    format_code_with_explanation,
     format_agent_comparison,
-    format_tool_call_visualization,
+    format_agent_response,
+    format_code_block,
+    format_code_with_explanation,
+    format_component_explanation,
     format_conversation_history,
+    format_error_message,
+    format_info_message,
     format_memory_visualization,
-    format_routing_decision
+    format_provider_status,
+    format_routing_decision,
+    format_step_by_step,
+    format_success_message,
+    format_tool_call_visualization,
+    format_tutorial_progress,
+    format_warning_message,
 )
 
 
+@pytest.mark.unit
 class TestFormatCodeBlock:
     """Test format_code_block function."""
 
@@ -50,6 +50,7 @@ class TestFormatCodeBlock:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatAgentResponse:
     """Test format_agent_response function."""
 
@@ -68,6 +69,7 @@ class TestFormatAgentResponse:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatMessages:
     """Test various message formatting functions."""
 
@@ -100,6 +102,7 @@ class TestFormatMessages:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatProviderStatus:
     """Test format_provider_status function."""
 
@@ -122,6 +125,7 @@ class TestFormatProviderStatus:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatTutorialProgress:
     """Test format_tutorial_progress function."""
 
@@ -154,6 +158,7 @@ class TestFormatTutorialProgress:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatComponentExplanation:
     """Test format_component_explanation function."""
 
@@ -191,6 +196,7 @@ Functions the agent can call
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatStepByStep:
     """Test format_step_by_step function."""
 
@@ -223,6 +229,7 @@ class TestFormatStepByStep:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatCodeWithExplanation:
     """Test format_code_with_explanation function."""
 
@@ -243,6 +250,7 @@ class TestFormatCodeWithExplanation:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatAgentComparison:
     """Test format_agent_comparison function."""
 
@@ -261,6 +269,7 @@ Using the add() tool: 3 + 12 = 15
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatToolCallVisualization:
     """Test format_tool_call_visualization function."""
 
@@ -297,6 +306,7 @@ class TestFormatToolCallVisualization:
         assert "→ `35`" in result
 
 
+@pytest.mark.unit
 class TestFormatConversationHistory:
     """Test format_conversation_history function."""
 
@@ -311,7 +321,7 @@ class TestFormatConversationHistory:
         """Test formatting basic conversation history."""
         messages = [
             {"role": "user", "content": "Hello"},
-            {"role": "assistant", "content": "Hi there!"}
+            {"role": "assistant", "content": "Hi there!"},
         ]
         result = format_conversation_history(messages)
         expected = "👤 **User:** Hello\n\n🤖 **Assistant:** Hi there!"
@@ -319,9 +329,7 @@ class TestFormatConversationHistory:
 
     def test_format_conversation_history_max_limit(self):
         """Test formatting conversation history with max limit."""
-        messages = [
-            {"role": "user", "content": f"Message {i}"} for i in range(15)
-        ]
+        messages = [{"role": "user", "content": f"Message {i}"} for i in range(15)]
         result = format_conversation_history(messages, max_messages=5)
 
         assert "... (showing last 5 of 15 messages)" in result
@@ -333,7 +341,7 @@ class TestFormatConversationHistory:
         """Test formatting conversation history under max limit."""
         messages = [
             {"role": "user", "content": "Hi"},
-            {"role": "assistant", "content": "Hello"}
+            {"role": "assistant", "content": "Hello"},
         ]
         result = format_conversation_history(messages, max_messages=10)
 
@@ -342,6 +350,7 @@ class TestFormatConversationHistory:
         assert "🤖 **Assistant:** Hello" in result
 
 
+@pytest.mark.unit
 class TestFormatMemoryVisualization:
     """Test format_memory_visualization function."""
 
@@ -357,7 +366,9 @@ class TestFormatMemoryVisualization:
         turns = 3
         tokens = 1234
         result = format_memory_visualization(turns, tokens)
-        expected = "💾 **Memory State:**\n- Conversation turns: 3\n- Total tokens: 1,234"
+        expected = (
+            "💾 **Memory State:**\n- Conversation turns: 3\n- Total tokens: 1,234"
+        )
         assert result == expected
 
     def test_format_memory_visualization_zero_turns(self):
@@ -368,6 +379,7 @@ class TestFormatMemoryVisualization:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatRoutingDecision:
     """Test format_routing_decision function."""
 
@@ -394,6 +406,7 @@ class TestFormatRoutingDecision:
         assert result == expected
 
 
+@pytest.mark.unit
 class TestFormatterIntegration:
     """Integration tests for formatter functions."""
 
@@ -441,7 +454,12 @@ class TestFormatterIntegration:
             ({"a": True, "b": True, "c": False, "d": False}, 2, 4, 50),  # 50%
         ]
 
-        for progress_dict, expected_completed, expected_total, expected_percent in test_cases:
+        for (
+            progress_dict,
+            expected_completed,
+            expected_total,
+            expected_percent,
+        ) in test_cases:
             result = format_tutorial_progress(progress_dict)
             assert f"{expected_completed}/{expected_total}" in result
             assert f"({expected_percent}%)" in result

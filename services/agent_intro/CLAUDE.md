@@ -6,6 +6,23 @@ This file contains Claude Code-specific configurations and commands for the Agen
 
 This is a microservice located at `services/agent_intro/` within the workshop-build-an-agent project. It demonstrates the four core components of AI agents using the PydanticAI framework.
 
+### Import Pattern
+
+This project uses src-layout with absolute imports. **All imports MUST use the `src.` prefix**:
+
+```python
+# ✅ CORRECT
+from src.agents.basic_agent import BasicAgent
+from src.tools.math_tools import add, multiply
+from src.models.providers import get_available_providers
+
+# ❌ WRONG
+from agents.basic_agent import BasicAgent
+from tools.math_tools import add
+```
+
+For more details on Python import patterns, see `~/.claude-prompts/python/python-import-fixer.md`.
+
 ## Development Commands
 
 ### Testing
@@ -14,13 +31,13 @@ This is a microservice located at `services/agent_intro/` within the workshop-bu
 uv run pytest
 
 # Run specific test file
-uv run pytest tests/test_basic_agent.py -v
+uv run pytest tests/agents/test_basic_agent.py -v
 
 # Run tests with verbose output
-uv run python -m pytest tests/ -v --tb=short
+uv run pytest tests/ -v --tb=short
 
 # Run specific test case
-uv run python -m pytest tests/test_basic_agent.py::TestBasicAgent::test_agent_creation -v
+uv run pytest tests/agents/test_basic_agent.py::TestBasicAgent::test_agent_creation -v
 ```
 
 ### Code Quality
@@ -28,20 +45,20 @@ uv run python -m pytest tests/test_basic_agent.py::TestBasicAgent::test_agent_cr
 # Run linting
 uv run ruff check src/ tests/
 
-# Run type checking
-uv run mypy src/
+# Format code with Ruff
+uv run ruff format src/ tests/
 
-# Format code
-uv run black src/ tests/
-
-# Run all quality checks
-uv run ruff check src/ tests/ && uv run mypy src/ && uv run black --check src/ tests/
+# Fix auto-fixable issues
+uv run ruff check --fix src/ tests/
 ```
 
 ### Running the Service
 ```bash
 # Start the Streamlit web interface
-uv run python run_streamlit_app.py
+uv run streamlit run src/streamlit_app/app.py
+
+# Or use a different port
+uv run streamlit run src/streamlit_app/app.py --server.port 8502
 
 # Run the interactive demo
 uv run agent-intro-demo
@@ -49,11 +66,6 @@ uv run agent-intro-demo
 # Run CLI examples
 uv run agent-intro-chat
 uv run agent-intro-tools
-
-# Run from Python modules
-uv run python -m src.agents.basic_agent
-uv run python -m src.examples.simple_chat
-uv run python -m src.examples.tool_calling
 ```
 
 ### Development Setup
@@ -120,13 +132,13 @@ EOF
 ### Debugging
 ```bash
 # Run with debug logging
-LOG_LEVEL=DEBUG uv run python -m src.agents.basic_agent
+LOG_LEVEL=DEBUG uv run agent-intro-demo
 
 # Run tests with detailed output
 uv run pytest -v -s --tb=long
 
 # Check specific test with debugging
-uv run pytest tests/test_basic_agent.py::test_function_name -v -s
+uv run pytest tests/agents/test_basic_agent.py::test_function_name -v -s
 ```
 
 ## File Locations
@@ -140,13 +152,15 @@ uv run pytest tests/test_basic_agent.py::test_function_name -v -s
 
 ### Configuration Files
 - `pyproject.toml` - Project configuration and dependencies
-- `pytest.ini` - Test configuration
+- `conftest.py` - Pytest configuration and fixtures
 - `.env` - Environment variables (create from template)
 
 ### Test Files
 - `tests/agents/` - Agent-related tests
 - `tests/tools/` - Tool-related tests
 - `tests/models/` - Model and provider tests
+- `tests/examples/` - Example script tests
+- `tests/streamlit_app/` - Streamlit component tests
 
 ## Container Development
 

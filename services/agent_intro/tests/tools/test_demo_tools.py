@@ -1,19 +1,21 @@
 """Tests for tools.demo_tools module."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime
-from tools.demo_tools import (
-    get_random_fact,
+
+from src.tools.demo_tools import (
     current_time,
-    word_count,
-    reverse_string,
-    generate_password,
     fibonacci,
-    is_palindrome
+    generate_password,
+    get_random_fact,
+    is_palindrome,
+    reverse_string,
+    word_count,
 )
 
 
+@pytest.mark.unit
 class TestDemoTools:
     """Test cases for demo tool functions."""
 
@@ -29,7 +31,7 @@ class TestDemoTools:
         assert all(isinstance(fact, str) for fact in facts)
         assert all(len(fact) > 0 for fact in facts)
 
-    @patch('tools.demo_tools.datetime')
+    @patch("src.tools.demo_tools.datetime")
     def test_current_time(self, mock_datetime):
         """Test current_time function."""
         # Mock datetime.now()
@@ -66,7 +68,10 @@ class TestDemoTools:
         assert reverse_string("") == ""
         assert reverse_string("a") == "a"
         assert reverse_string("12345") == "54321"
-        assert reverse_string("A man a plan a canal Panama") == "amanaP lanac a nalp a nam A"
+        assert (
+            reverse_string("A man a plan a canal Panama")
+            == "amanaP lanac a nalp a nam A"
+        )
 
     def test_reverse_string_edge_cases(self):
         """Test reverse_string with edge cases."""
@@ -100,13 +105,19 @@ class TestDemoTools:
 
     def test_generate_password_invalid_length(self):
         """Test generate_password with invalid lengths."""
-        with pytest.raises(ValueError, match="Password length must be between 8 and 50"):
+        with pytest.raises(
+            ValueError, match="Password length must be between 8 and 50"
+        ):
             generate_password(7)
 
-        with pytest.raises(ValueError, match="Password length must be between 8 and 50"):
+        with pytest.raises(
+            ValueError, match="Password length must be between 8 and 50"
+        ):
             generate_password(51)
 
-        with pytest.raises(ValueError, match="Password length must be between 8 and 50"):
+        with pytest.raises(
+            ValueError, match="Password length must be between 8 and 50"
+        ):
             generate_password(0)
 
     def test_generate_password_randomness(self):
@@ -189,7 +200,7 @@ class TestDemoTools:
             reverse_string,
             generate_password,
             fibonacci,
-            is_palindrome
+            is_palindrome,
         ]
 
         for func in functions:
@@ -199,15 +210,15 @@ class TestDemoTools:
     def test_function_type_annotations(self):
         """Test that functions have proper type annotations."""
         # Test functions that should have annotations
-        assert hasattr(word_count, '__annotations__')
-        assert hasattr(reverse_string, '__annotations__')
-        assert hasattr(generate_password, '__annotations__')
-        assert hasattr(fibonacci, '__annotations__')
-        assert hasattr(is_palindrome, '__annotations__')
+        assert hasattr(word_count, "__annotations__")
+        assert hasattr(reverse_string, "__annotations__")
+        assert hasattr(generate_password, "__annotations__")
+        assert hasattr(fibonacci, "__annotations__")
+        assert hasattr(is_palindrome, "__annotations__")
 
         # Check specific annotations
-        assert 'text' in word_count.__annotations__
-        assert 'text' in reverse_string.__annotations__
-        assert 'length' in generate_password.__annotations__
-        assert 'n' in fibonacci.__annotations__
-        assert 'text' in is_palindrome.__annotations__
+        assert "text" in word_count.__annotations__
+        assert "text" in reverse_string.__annotations__
+        assert "length" in generate_password.__annotations__
+        assert "n" in fibonacci.__annotations__
+        assert "text" in is_palindrome.__annotations__

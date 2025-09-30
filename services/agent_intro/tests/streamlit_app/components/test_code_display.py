@@ -2,26 +2,28 @@
 Tests for code display components.
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from streamlit_app.components.code_display import (
-    display_interactive_code,
-    show_execution_step,
+    display_agent_architecture,
     display_code_comparison,
     display_code_evolution,
+    display_code_playground,
+    display_interactive_code,
     display_runnable_code,
     display_tool_signature,
-    display_agent_architecture,
-    display_code_playground
+    show_execution_step,
 )
 
 
+@pytest.mark.unit
 class TestDisplayInteractiveCode:
     """Test display_interactive_code function."""
 
-    @patch('streamlit.markdown')
-    @patch('streamlit.code')
+    @patch("streamlit.markdown")
+    @patch("streamlit.code")
     def test_display_interactive_code_read_only(self, mock_code, mock_markdown):
         """Test displaying code in read-only mode."""
         code = "print('hello')"
@@ -33,10 +35,12 @@ class TestDisplayInteractiveCode:
         mock_code.assert_called_once_with(code, language="python")
         assert result == code
 
-    @patch('streamlit.markdown')
-    @patch('streamlit.text_area')
-    @patch('streamlit.code')
-    def test_display_interactive_code_editable(self, mock_code, mock_text_area, mock_markdown):
+    @patch("streamlit.markdown")
+    @patch("streamlit.text_area")
+    @patch("streamlit.code")
+    def test_display_interactive_code_editable(
+        self, mock_code, mock_text_area, mock_markdown
+    ):
         """Test displaying code in editable mode."""
         code = "print('hello')"
         explanation = "This prints hello"
@@ -44,20 +48,19 @@ class TestDisplayInteractiveCode:
 
         mock_text_area.return_value = edited_code
 
-        result = display_interactive_code(code, explanation, allow_edit=True, key="test")
+        result = display_interactive_code(
+            code, explanation, allow_edit=True, key="test"
+        )
 
         mock_markdown.assert_called_once_with(explanation)
         mock_text_area.assert_called_once_with(
-            "Edit the code:",
-            value=code,
-            height=200,
-            key="code_edit_test"
+            "Edit the code:", value=code, height=200, key="code_edit_test"
         )
         mock_code.assert_called_once_with(edited_code, language="python")
         assert result == edited_code
 
-    @patch('streamlit.markdown')
-    @patch('streamlit.code')
+    @patch("streamlit.markdown")
+    @patch("streamlit.code")
     def test_display_interactive_code_no_key_no_edit(self, mock_code, mock_markdown):
         """Test that editing is disabled when no key is provided."""
         code = "print('hello')"
@@ -70,16 +73,18 @@ class TestDisplayInteractiveCode:
         assert result == code
 
 
+@pytest.mark.unit
 class TestShowExecutionStep:
     """Test show_execution_step function."""
 
-    @patch('streamlit.expander')
-    @patch('streamlit.columns')
-    @patch('streamlit.subheader')
-    @patch('streamlit.json')
-    @patch('streamlit.write')
-    def test_show_execution_step_basic(self, mock_write, mock_json, mock_subheader,
-                                      mock_columns, mock_expander):
+    @patch("streamlit.expander")
+    @patch("streamlit.columns")
+    @patch("streamlit.subheader")
+    @patch("streamlit.json")
+    @patch("streamlit.write")
+    def test_show_execution_step_basic(
+        self, mock_write, mock_json, mock_subheader, mock_columns, mock_expander
+    ):
         """Test basic execution step display."""
         # Mock context managers
         mock_expander_context = MagicMock()
@@ -100,15 +105,21 @@ class TestShowExecutionStep:
         mock_expander.assert_called_once_with("🔍 Test Step", expanded=False)
         mock_columns.assert_called_once_with(2)
 
-    @patch('streamlit.expander')
-    @patch('streamlit.columns')
-    @patch('streamlit.subheader')
-    @patch('streamlit.json')
-    @patch('streamlit.code')
-    @patch('streamlit.markdown')
-    def test_show_execution_step_with_code_and_explanation(self, mock_markdown, mock_code,
-                                                          mock_json, mock_subheader,
-                                                          mock_columns, mock_expander):
+    @patch("streamlit.expander")
+    @patch("streamlit.columns")
+    @patch("streamlit.subheader")
+    @patch("streamlit.json")
+    @patch("streamlit.code")
+    @patch("streamlit.markdown")
+    def test_show_execution_step_with_code_and_explanation(
+        self,
+        mock_markdown,
+        mock_code,
+        mock_json,
+        mock_subheader,
+        mock_columns,
+        mock_expander,
+    ):
         """Test execution step with code and explanation."""
         # Mock context managers
         mock_expander_context = MagicMock()
@@ -133,12 +144,13 @@ class TestShowExecutionStep:
         mock_markdown.assert_called_with(explanation)
 
 
+@pytest.mark.unit
 class TestDisplayCodeComparison:
     """Test display_code_comparison function."""
 
-    @patch('streamlit.columns')
-    @patch('streamlit.subheader')
-    @patch('streamlit.code')
+    @patch("streamlit.columns")
+    @patch("streamlit.subheader")
+    @patch("streamlit.code")
     def test_display_code_comparison(self, mock_code, mock_subheader, mock_columns):
         """Test side-by-side code comparison."""
         # Mock columns context managers
@@ -162,14 +174,17 @@ class TestDisplayCodeComparison:
         assert mock_code.call_count == 2
 
 
+@pytest.mark.unit
 class TestDisplayCodeEvolution:
     """Test display_code_evolution function."""
 
-    @patch('streamlit.subheader')
-    @patch('streamlit.markdown')
-    @patch('streamlit.expander')
-    @patch('streamlit.code')
-    def test_display_code_evolution(self, mock_code, mock_expander, mock_markdown, mock_subheader):
+    @patch("streamlit.subheader")
+    @patch("streamlit.markdown")
+    @patch("streamlit.expander")
+    @patch("streamlit.code")
+    def test_display_code_evolution(
+        self, mock_code, mock_expander, mock_markdown, mock_subheader
+    ):
         """Test code evolution display."""
         # Mock expander context manager
         mock_expander_context = MagicMock()
@@ -179,7 +194,7 @@ class TestDisplayCodeEvolution:
         steps = [
             {"title": "Step 1", "code": "code1", "explanation": "First step"},
             {"title": "Step 2", "code": "code2"},
-            {"title": "Step 3", "code": "code3", "language": "javascript"}
+            {"title": "Step 3", "code": "code3", "language": "javascript"},
         ]
 
         display_code_evolution(steps, current_step=1)
@@ -191,13 +206,16 @@ class TestDisplayCodeEvolution:
         assert mock_expander.call_count == len(steps)
 
 
+@pytest.mark.unit
 class TestDisplayRunnableCode:
     """Test display_runnable_code function."""
 
-    @patch('streamlit.markdown')
-    @patch('streamlit.code')
-    @patch('streamlit.button')
-    def test_display_runnable_code_with_explanation(self, mock_button, mock_code, mock_markdown):
+    @patch("streamlit.markdown")
+    @patch("streamlit.code")
+    @patch("streamlit.button")
+    def test_display_runnable_code_with_explanation(
+        self, mock_button, mock_code, mock_markdown
+    ):
         """Test runnable code display with explanation."""
         code = "print('hello')"
         explanation = "This code prints hello"
@@ -210,8 +228,8 @@ class TestDisplayRunnableCode:
         mock_button.assert_called_once_with("Run Code", key="test")
         assert result is True
 
-    @patch('streamlit.code')
-    @patch('streamlit.button')
+    @patch("streamlit.code")
+    @patch("streamlit.button")
     def test_display_runnable_code_no_explanation(self, mock_button, mock_code):
         """Test runnable code display without explanation."""
         code = "print('hello')"
@@ -224,12 +242,13 @@ class TestDisplayRunnableCode:
         assert result is False
 
 
+@pytest.mark.unit
 class TestDisplayToolSignature:
     """Test display_tool_signature function."""
 
-    @patch('streamlit.expander')
-    @patch('streamlit.code')
-    @patch('streamlit.markdown')
+    @patch("streamlit.expander")
+    @patch("streamlit.code")
+    @patch("streamlit.markdown")
     def test_display_tool_signature(self, mock_markdown, mock_code, mock_expander):
         """Test tool signature display."""
         # Mock expander context manager
@@ -240,7 +259,7 @@ class TestDisplayToolSignature:
         tool_name = "add"
         parameters = {
             "a": {"type": "int", "description": "First number"},
-            "b": {"type": "int", "description": "Second number"}
+            "b": {"type": "int", "description": "Second number"},
         }
         return_type = "int"
         description = "Adds two numbers"
@@ -252,10 +271,12 @@ class TestDisplayToolSignature:
         # Should have multiple markdown calls for description and parameters
         assert mock_markdown.call_count >= 3
 
-    @patch('streamlit.expander')
-    @patch('streamlit.code')
-    @patch('streamlit.markdown')
-    def test_display_tool_signature_no_parameters(self, mock_markdown, mock_code, mock_expander):
+    @patch("streamlit.expander")
+    @patch("streamlit.code")
+    @patch("streamlit.markdown")
+    def test_display_tool_signature_no_parameters(
+        self, mock_markdown, mock_code, mock_expander
+    ):
         """Test tool signature display with no parameters."""
         # Mock expander context manager
         mock_expander_context = MagicMock()
@@ -275,13 +296,16 @@ class TestDisplayToolSignature:
         mock_markdown.assert_called()
 
 
+@pytest.mark.unit
 class TestDisplayAgentArchitecture:
     """Test display_agent_architecture function."""
 
-    @patch('streamlit.subheader')
-    @patch('streamlit.columns')
-    @patch('streamlit.markdown')
-    def test_display_agent_architecture(self, mock_markdown, mock_columns, mock_subheader):
+    @patch("streamlit.subheader")
+    @patch("streamlit.columns")
+    @patch("streamlit.markdown")
+    def test_display_agent_architecture(
+        self, mock_markdown, mock_columns, mock_subheader
+    ):
         """Test agent architecture display."""
         # Mock columns context managers
         mock_col_contexts = [MagicMock() for _ in range(4)]
@@ -298,17 +322,25 @@ class TestDisplayAgentArchitecture:
         assert mock_markdown.call_count >= 5
 
 
+@pytest.mark.unit
 class TestDisplayCodePlayground:
     """Test display_code_playground function."""
 
-    @patch('streamlit.subheader')
-    @patch('streamlit.markdown')
-    @patch('streamlit.text_area')
-    @patch('streamlit.columns')
-    @patch('streamlit.button')
-    @patch('streamlit.info')
-    def test_display_code_playground(self, mock_info, mock_button, mock_columns,
-                                   mock_text_area, mock_markdown, mock_subheader):
+    @patch("streamlit.subheader")
+    @patch("streamlit.markdown")
+    @patch("streamlit.text_area")
+    @patch("streamlit.columns")
+    @patch("streamlit.button")
+    @patch("streamlit.info")
+    def test_display_code_playground(
+        self,
+        mock_info,
+        mock_button,
+        mock_columns,
+        mock_text_area,
+        mock_markdown,
+        mock_subheader,
+    ):
         """Test code playground display."""
         # Mock context managers
         mock_col_contexts = [MagicMock(), MagicMock()]
@@ -330,20 +362,21 @@ class TestDisplayCodePlayground:
             value=initial_code,
             height=300,
             key="playground_test",
-            help="Write your Python code here. Click 'Run Code' to execute."
+            help="Write your Python code here. Click 'Run Code' to execute.",
         )
         mock_columns.assert_called_once_with([1, 4])
         mock_button.assert_called_once_with("▶️ Run Code", key="run_test")
         mock_info.assert_called_once()  # Called when run button is clicked
         assert result == edited_code
 
-    @patch('streamlit.subheader')
-    @patch('streamlit.markdown')
-    @patch('streamlit.text_area')
-    @patch('streamlit.columns')
-    @patch('streamlit.button')
-    def test_display_code_playground_no_run(self, mock_button, mock_columns,
-                                          mock_text_area, mock_markdown, mock_subheader):
+    @patch("streamlit.subheader")
+    @patch("streamlit.markdown")
+    @patch("streamlit.text_area")
+    @patch("streamlit.columns")
+    @patch("streamlit.button")
+    def test_display_code_playground_no_run(
+        self, mock_button, mock_columns, mock_text_area, mock_markdown, mock_subheader
+    ):
         """Test code playground when run button is not clicked."""
         # Mock context managers
         mock_col_contexts = [MagicMock(), MagicMock()]
@@ -361,16 +394,17 @@ class TestDisplayCodePlayground:
 
         assert result == edited_code
         # info should not be called when button is not clicked
-        with patch('streamlit.info') as mock_info:
+        with patch("streamlit.info") as mock_info:
             mock_info.assert_not_called()
 
 
+@pytest.mark.unit
 class TestCodeDisplayIntegration:
     """Integration tests for code display components."""
 
-    @patch('streamlit.markdown')
-    @patch('streamlit.code')
-    @patch('streamlit.text_area')
+    @patch("streamlit.markdown")
+    @patch("streamlit.code")
+    @patch("streamlit.text_area")
     def test_interactive_code_flow(self, mock_text_area, mock_code, mock_markdown):
         """Test the flow of interactive code editing."""
         original_code = "x = 1"
@@ -384,12 +418,14 @@ class TestCodeDisplayIntegration:
         assert result1 == original_code
 
         # Test editable
-        result2 = display_interactive_code(original_code, explanation, allow_edit=True, key="test")
+        result2 = display_interactive_code(
+            original_code, explanation, allow_edit=True, key="test"
+        )
         assert result2 == modified_code
 
-    @patch('streamlit.expander')
-    @patch('streamlit.markdown')
-    @patch('streamlit.code')
+    @patch("streamlit.expander")
+    @patch("streamlit.markdown")
+    @patch("streamlit.code")
     def test_code_evolution_progression(self, mock_code, mock_markdown, mock_expander):
         """Test code evolution with different step states."""
         # Mock expander context manager
@@ -400,7 +436,7 @@ class TestCodeDisplayIntegration:
         steps = [
             {"title": "Init", "code": "x = 0"},
             {"title": "Process", "code": "x += 1"},
-            {"title": "Result", "code": "print(x)"}
+            {"title": "Result", "code": "print(x)"},
         ]
 
         # Test different current steps
